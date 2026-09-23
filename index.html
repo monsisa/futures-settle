@@ -72,6 +72,8 @@
   .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
   .sitenav a:hover{background:var(--stripe);color:var(--ink)}
   .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  :root[data-theme="dark"]{color-scheme:dark}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
   .sitenav .navtheme{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;flex:none}
 </style>
 <nav class="sitenav">
@@ -90,7 +92,7 @@
 </div>
 
 <script>
-const D = {"updated":"2026-09-23 20:01","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":3864,"sqz":0,"tsmc":0.543,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":79.83,"signal":"not_rise","next":{"date":"2026-09-25","kind":"週五選","weekday":"五"}}};
+const D = {"updated":"2026-09-23 20:25","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":3864,"sqz":0,"tsmc":0.543,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":79.83,"signal":"not_rise","next":{"date":"2026-09-25","kind":"週五選","weekday":"五"}}};
 
 function chips(list){ return list.map(c=>`<span class="chip ${c.cls||''}">${c.k}<b class="num">${c.v}</b>${c.u||''}</span>`).join(''); }
 

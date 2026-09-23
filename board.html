@@ -116,6 +116,8 @@
   .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
   .sitenav a:hover{background:var(--stripe);color:var(--ink)}
   .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  :root[data-theme="dark"]{color-scheme:dark}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
 </style>
 <nav class="sitenav">
   <a href="index.html">🧭 總覽</a>
