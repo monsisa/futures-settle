@@ -92,7 +92,7 @@
 </div>
 
 <script>
-const D = {"updated":"2026-09-24 01:11","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":3864,"sqz":367,"tsmc":0.543,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":79.83,"signal":"not_rise","next":{"date":"2026-09-25","kind":"週五選","weekday":"五"}}};
+const D = {"updated":"2026-09-24 01:15","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":3864,"sqz":367,"tsmc":0.543,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":79.83,"signal":"not_rise","next":{"date":"2026-09-25","kind":"週五選","weekday":"五"}}};
 
 function chips(list){ return list.map(c=>`<span class="chip ${c.cls||''}">${c.k}<b class="num">${c.v}</b>${c.u||''}</span>`).join(''); }
 
@@ -100,7 +100,7 @@ const b=D.board, p=D.pcr;
 const gateCls = b.gate==='rest'?'rest':'amber';
 const sellCls = b.sell>=350?'up':'rest';
 const sqzCls  = b.sqz>=3500?'down':'rest';
-const pcrUp = p.signal==='not_fall';
+const pcrUp = p.signal==='not_fall';   // 偏不跌=利多=紅、偏不漲=利空=綠
 
 document.getElementById('cards').innerHTML = `
   <a class="tool t1" href="board.html">
@@ -128,8 +128,8 @@ document.getElementById('cards').innerHTML = `
     </div>
     <div class="snap">
       ${chips([
-        {k:'最新PCR',v:p.latest_pcr,cls:pcrUp?'up':'down'},
-        {k:'訊號',v:pcrUp?'偏不跌 ▲':'偏不漲 ▼',cls:pcrUp?'up':'down'},
+        {k:'最新PCR',v:p.latest_pcr,cls:pcrUp?'down':'up'},
+        {k:'訊號',v:pcrUp?'偏不跌 ▲':'偏不漲 ▼',cls:pcrUp?'down':'up'},
         {k:'下次結算',v:(p.next?p.next.date+' '+p.next.kind:'—')},
       ])}
     </div>
