@@ -57,13 +57,14 @@
   .legend span{display:flex;align-items:center;gap:5px}
   .dot{width:11px;height:11px;border-radius:3px}
 
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   /* 分布圖 */
-  .prow{display:grid;grid-template-columns:1fr 62px 1fr;align-items:center;gap:6px;height:22px}
-  .prow.spot{background:var(--accent-bg);border-radius:4px}
-  .pbar{height:14px;display:flex;align-items:center}
+  #profile{display:flex;flex-direction:column;gap:6px}
+  .prow{display:grid;grid-template-columns:1fr 62px 1fr;align-items:center;gap:8px;height:30px}
+  .prow.spot{background:var(--accent-bg);border-radius:5px}
+  .pbar{height:20px;display:flex;align-items:center}
   .pbar.put{justify-content:flex-end}
-  .pbar .b{height:14px;border-radius:3px}
+  .pbar .b{height:20px;border-radius:3px}
   .pbar.put .b{background:var(--put)} .pbar.call .b{background:var(--call)}
   .pbar .n{font-size:10px;color:var(--ink-soft);margin:0 4px;white-space:nowrap}
   .strike{text-align:center;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace}
@@ -117,7 +118,7 @@
   <h2 class="sec">每500點數據</h2>
   <p class="hint" id="tbl-hint"></p>
   <div class="card" style="padding:0;overflow-x:auto"><table>
-    <thead><tr><th class="l">履約價區間</th><th>Call口</th><th>Call%</th><th>Put口</th><th>Put%</th></tr></thead>
+    <thead><tr><th class="l">履約價區間</th><th>Put口</th><th>Put%</th><th>Call口</th><th>Call%</th></tr></thead>
     <tbody id="tbl-body"></tbody>
   </table></div>
 
@@ -178,10 +179,10 @@ function render(idx){
     const isSpot = b.lo===spotBucket;
     return `<tr class="${isSpot?'spotrow':''}">
       <td class="l num">${comma(b.lo)}–${comma(b.lo+M.bucket)}</td>
-      <td class="num cc">${b.c?comma(b.c):''}</td>
-      <td class="num cc">${b.c?b.cp+'%':''}</td>
       <td class="num pp">${b.p?comma(b.p):''}</td>
       <td class="num pp">${b.p?b.pp+'%':''}</td>
+      <td class="num cc">${b.c?comma(b.c):''}</td>
+      <td class="num cc">${b.c?b.cp+'%':''}</td>
     </tr>`;
   }).join('');
 }
