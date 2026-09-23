@@ -7,8 +7,8 @@
     --bg:#faf8f3; --surface:#ffffff; --stripe:#f5f1e8; --head:#f0ebe0;
     --ink:#1b1a16; --ink-soft:#69645a; --ink-faint:#9c9583;
     --line:#e6e0d2; --line-soft:#efe9dd;
-    --up:#0f8a4c; --up-bg:rgba(15,138,76,.12);
-    --down:#c0392b; --down-bg:rgba(192,57,43,.12);
+    --up:#c0392b; --up-bg:rgba(192,57,43,.12);
+    --down:#0f8a4c; --down-bg:rgba(15,138,76,.12);
     --accent:#2a5da0; --accent-bg:rgba(42,93,160,.10); --rest-bg:#eceadf;
     color-scheme:light;
   }
@@ -16,14 +16,14 @@
     --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
     --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a;
     --line:#302b20; --line-soft:#28241a;
-    --up:#3cc879; --up-bg:rgba(60,200,121,.14); --down:#ff6a5f; --down-bg:rgba(255,106,95,.14);
+    --up:#ff6a5f; --up-bg:rgba(255,106,95,.14); --down:#3cc879; --down-bg:rgba(60,200,121,.14);
     --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116;
   }}
   :root[data-theme="dark"]{
     --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
     --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a;
     --line:#302b20; --line-soft:#28241a;
-    --up:#3cc879; --up-bg:rgba(60,200,121,.14); --down:#ff6a5f; --down-bg:rgba(255,106,95,.14);
+    --up:#ff6a5f; --up-bg:rgba(255,106,95,.14); --down:#3cc879; --down-bg:rgba(60,200,121,.14);
     --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116;
   }
   *{box-sizing:border-box}
@@ -84,7 +84,7 @@
   tbody tr:nth-child(even) td{background:var(--stripe)}
   td.l{text-align:left}
   .kbadge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:700}
-  .kbadge.r{color:var(--down);background:var(--down-bg)} .kbadge.b{color:var(--up);background:var(--up-bg)}
+  .kbadge.r{color:var(--up);background:var(--up-bg)} .kbadge.b{color:var(--down);background:var(--down-bg)}
   .flag{font-weight:700} .flag.nf{color:var(--up)} .flag.nr{color:var(--down)} .flag.dim{color:var(--ink-faint)}
   .pcrpill{font-weight:700} .pcrpill.hi{color:var(--up)} .pcrpill.lo{color:var(--down)}
   .foot{margin-top:24px;font-size:12px;color:var(--ink-soft);line-height:1.75}
@@ -135,12 +135,12 @@
   <div class="card" id="bt-chart"></div>
 
   <h2 class="sec">近期結算日結果</h2>
-  <p class="hint">前一日 PCR ≥100(綠)偏不跌、&lt;100(紅)偏不漲。結果欄只看引線:守=下引線(偏不跌)、壓=上引線(偏不漲)、—=無明顯引線。</p>
+  <p class="hint">前一日 PCR ≥100(紅)偏不跌、&lt;100(綠)偏不漲。結果欄只看引線:守=下引線(偏不跌)、壓=上引線(偏不漲)、—=無明顯引線。</p>
   <div class="card" style="padding:0"><div class="scroll"><table>
     <thead><tr>
       <th class="l">結算日</th>
       <th class="l">類型</th>
-      <th data-tip="結算日『前一交易日』收盤的未平倉 PC ratio。≥100(綠)偏不跌、<100(紅)偏不漲,分水嶺≈100。">前日PCR</th>
+      <th data-tip="結算日『前一交易日』收盤的未平倉 PC ratio。≥100(紅)偏不跌、<100(綠)偏不漲,分水嶺≈100。">前日PCR</th>
       <th data-tip="結算日大盤(加權指數)當天:收紅K(收盤>開盤)或黑K(收盤<開盤)。">K棒</th>
       <th data-tip="只看上下引線(K棒紅黑已在前欄):守=較長下引線(盤中被拉回、收相對高→偏不跌);壓=較長上引線(盤中被壓回、收相對低→偏不漲);—=無明顯引線。">結果</th>
       <th data-tip="結算日大盤漲跌幅 =(結算日收盤 − 前一日收盤)÷ 前一日收盤 × 100%。正=紅(漲)、負=綠(跌)。跟結果欄不一定一致(引線看盤中、報酬看收盤)。">報酬</th>
@@ -219,7 +219,7 @@ document.getElementById('recent-body').innerHTML = DATA.recent.slice().reverse()
     <td class="num pcrpill ${hi?'hi':'lo'}">${r.pcr}</td>
     <td><span class="kbadge ${r.red?'r':'b'}">${r.red?'紅K':'黑K'}</span></td>
     <td>${res}</td>
-    <td class="num" style="color:${r.ret>0?'var(--down)':r.ret<0?'var(--up)':'var(--ink-soft)'}">${r.ret>0?'+':''}${r.ret}%</td>
+    <td class="num" style="color:${r.ret>0?'var(--up)':r.ret<0?'var(--down)':'var(--ink-soft)'}">${r.ret>0?'+':''}${r.ret}%</td>
   </tr>`;
 }).join('');
 
