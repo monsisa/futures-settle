@@ -98,6 +98,11 @@
   .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
   :root[data-theme="dark"]{color-scheme:dark}
   @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+  [data-tip]{cursor:help}
+  th[data-tip]{text-decoration:underline dotted var(--ink-faint);text-underline-offset:3px}
+  .ttpop{position:fixed;max-width:300px;background:var(--ink);color:var(--bg);padding:8px 11px;
+    border-radius:8px;font-size:12px;line-height:1.55;z-index:200;pointer-events:none;
+    box-shadow:0 8px 26px rgba(0,0,0,.28)}
 </style>
 <nav class="sitenav">
   <a href="index.html">🧭 總覽</a>
@@ -130,9 +135,16 @@
   <div class="card" id="bt-chart"></div>
 
   <h2 class="sec">近期結算日結果</h2>
-  <p class="hint">前一日 PCR ≥100(綠)偏不跌、&lt;100(紅)偏不漲。結果欄:守=不跌、壓=不漲(可能同時)。</p>
+  <p class="hint">前一日 PCR ≥100(綠)偏不跌、&lt;100(紅)偏不漲。結果欄只看引線:守=下引線(偏不跌)、壓=上引線(偏不漲)、—=無明顯引線。</p>
   <div class="card" style="padding:0"><div class="scroll"><table>
-    <thead><tr><th class="l">結算日</th><th class="l">類型</th><th>前日PCR</th><th>K棒</th><th>結果</th><th>報酬</th></tr></thead>
+    <thead><tr>
+      <th class="l">結算日</th>
+      <th class="l">類型</th>
+      <th data-tip="結算日『前一交易日』收盤的未平倉 PC ratio。≥100(綠)偏不跌、<100(紅)偏不漲,分水嶺≈100。">前日PCR</th>
+      <th data-tip="結算日大盤(加權指數)當天:收紅K(收盤>開盤)或黑K(收盤<開盤)。">K棒</th>
+      <th data-tip="只看上下引線(K棒紅黑已在前欄):守=較長下引線(盤中被拉回、收相對高→偏不跌);壓=較長上引線(盤中被壓回、收相對低→偏不漲);—=無明顯引線。">結果</th>
+      <th data-tip="結算日大盤漲跌幅 =(結算日收盤 − 前一日收盤)÷ 前一日收盤 × 100%。正=紅(漲)、負=綠(跌)。跟結果欄不一定一致(引線看盤中、報酬看收盤)。">報酬</th>
+    </tr></thead>
     <tbody id="recent-body"></tbody>
   </table></div></div>
 
@@ -140,7 +152,7 @@
 </div>
 
 <script>
-const DATA = {"meta":{"updated":"2026-09-23 19:52","latest_pcr_date":"2026-09-23","latest_pcr":79.83,"signal":"not_rise","pivot":100,"next_settle":{"date":"2026-09-25","kind":"週五選","weekday":"五"},"n_settle":277,"range":"2024-01-03 ~ 2026-09-23"},"buckets":{"wed":[{"label":"<90","n":30,"notfall":60,"notrise":73,"ret":-0.02},{"label":"90–100","n":16,"notfall":62,"notrise":69,"ret":-0.17},{"label":"100–110","n":28,"notfall":86,"notrise":54,"ret":0.45},{"label":"110–120","n":17,"notfall":88,"notrise":53,"ret":0.54},{"label":"≥120","n":51,"notfall":75,"notrise":55,"ret":0.35}],"all":[{"label":"<90","n":54,"notfall":63,"notrise":69,"ret":0.18},{"label":"90–100","n":32,"notfall":59,"notrise":72,"ret":-0.2},{"label":"100–110","n":52,"notfall":75,"notrise":60,"ret":0.26},{"label":"110–120","n":38,"notfall":66,"notrise":61,"ret":0.29},{"label":"≥120","n":101,"notfall":72,"notrise":59,"ret":0.17}],"fri":[{"label":"<90","n":25,"notfall":68,"notrise":64,"ret":0.39},{"label":"90–100","n":17,"notfall":59,"notrise":76,"ret":-0.4},{"label":"100–110","n":25,"notfall":64,"notrise":68,"ret":-0.1},{"label":"110–120","n":22,"notfall":50,"notrise":68,"ret":0.23},{"label":"≥120","n":51,"notfall":71,"notrise":65,"ret":0.0}]},"recent":[{"d":"2026-05-08","kind":"週五選","pcr":174.13,"red":false,"notfall":true,"notrise":true,"ret":-0.79},{"d":"2026-05-13","kind":"週三選","pcr":161.65,"red":false,"notfall":true,"notrise":true,"ret":-1.25},{"d":"2026-05-15","kind":"週五選","pcr":162.46,"red":false,"notfall":false,"notrise":true,"ret":-1.39},{"d":"2026-05-20","kind":"月選","pcr":122.41,"red":false,"notfall":false,"notrise":true,"ret":-0.39},{"d":"2026-05-22","kind":"週五選","pcr":140.2,"red":true,"notfall":true,"notrise":false,"ret":2.18},{"d":"2026-05-27","kind":"週三選","pcr":125.76,"red":true,"notfall":true,"notrise":true,"ret":1.68},{"d":"2026-05-29","kind":"週五選","pcr":127.81,"red":true,"notfall":true,"notrise":false,"ret":2.51},{"d":"2026-06-03","kind":"週三選","pcr":142.84,"red":true,"notfall":true,"notrise":false,"ret":1.98},{"d":"2026-06-05","kind":"週五選","pcr":140.41,"red":false,"notfall":true,"notrise":true,"ret":-1.33},{"d":"2026-06-10","kind":"週三選","pcr":133.64,"red":false,"notfall":false,"notrise":true,"ret":-3.31},{"d":"2026-06-12","kind":"週五選","pcr":133.33,"red":true,"notfall":true,"notrise":true,"ret":2.36},{"d":"2026-06-17","kind":"月選","pcr":164.48,"red":true,"notfall":true,"notrise":false,"ret":0.15},{"d":"2026-06-22","kind":"週五選","pcr":114.67,"red":true,"notfall":true,"notrise":false,"ret":2.75},{"d":"2026-06-24","kind":"週三選","pcr":98.99,"red":false,"notfall":false,"notrise":true,"ret":-2.24},{"d":"2026-06-26","kind":"週五選","pcr":114.57,"red":false,"notfall":false,"notrise":true,"ret":-3.64},{"d":"2026-07-01","kind":"週三選","pcr":134.93,"red":true,"notfall":true,"notrise":false,"ret":1.94},{"d":"2026-07-03","kind":"週五選","pcr":120.46,"red":true,"notfall":true,"notrise":false,"ret":0.08},{"d":"2026-07-08","kind":"週三選","pcr":98.68,"red":true,"notfall":true,"notrise":false,"ret":0.56},{"d":"2026-07-13","kind":"週五選","pcr":118.81,"red":false,"notfall":false,"notrise":true,"ret":0.06},{"d":"2026-07-15","kind":"月選","pcr":99.31,"red":true,"notfall":true,"notrise":false,"ret":2.0},{"d":"2026-07-17","kind":"週五選","pcr":93.37,"red":false,"notfall":false,"notrise":true,"ret":-6.47},{"d":"2026-07-22","kind":"週三選","pcr":106.32,"red":true,"notfall":true,"notrise":true,"ret":1.34},{"d":"2026-07-24","kind":"週五選","pcr":119.11,"red":false,"notfall":false,"notrise":true,"ret":-2.67},{"d":"2026-07-29","kind":"週三選","pcr":89.37,"red":false,"notfall":false,"notrise":true,"ret":-3.76},{"d":"2026-07-31","kind":"週五選","pcr":79.43,"red":true,"notfall":true,"notrise":false,"ret":7.98},{"d":"2026-08-05","kind":"週三選","pcr":102.56,"red":true,"notfall":true,"notrise":false,"ret":2.88},{"d":"2026-08-07","kind":"週五選","pcr":109.77,"red":false,"notfall":false,"notrise":true,"ret":-0.38},{"d":"2026-08-12","kind":"週三選","pcr":123.58,"red":true,"notfall":true,"notrise":false,"ret":0.88},{"d":"2026-08-14","kind":"週五選","pcr":112.03,"red":false,"notfall":false,"notrise":true,"ret":-0.46},{"d":"2026-08-19","kind":"月選","pcr":104.64,"red":false,"notfall":true,"notrise":true,"ret":-1.3},{"d":"2026-08-21","kind":"週五選","pcr":99.37,"red":true,"notfall":true,"notrise":false,"ret":0.65},{"d":"2026-08-26","kind":"週三選","pcr":101.99,"red":true,"notfall":true,"notrise":false,"ret":1.47},{"d":"2026-08-28","kind":"週五選","pcr":105.81,"red":true,"notfall":true,"notrise":true,"ret":0.77},{"d":"2026-09-02","kind":"週三選","pcr":110.04,"red":false,"notfall":false,"notrise":true,"ret":-1.67},{"d":"2026-09-04","kind":"週五選","pcr":77.16,"red":true,"notfall":true,"notrise":false,"ret":1.51},{"d":"2026-09-09","kind":"週三選","pcr":105.23,"red":true,"notfall":true,"notrise":true,"ret":0.16},{"d":"2026-09-11","kind":"週五選","pcr":82.67,"red":false,"notfall":true,"notrise":true,"ret":-1.61},{"d":"2026-09-16","kind":"月選","pcr":85.89,"red":true,"notfall":true,"notrise":true,"ret":0.74},{"d":"2026-09-18","kind":"週五選","pcr":76.5,"red":true,"notfall":true,"notrise":false,"ret":1.93},{"d":"2026-09-23","kind":"週三選","pcr":87.33,"red":true,"notfall":true,"notrise":true,"ret":0.75}]};
+const DATA = {"meta":{"updated":"2026-09-24 00:51","latest_pcr_date":"2026-09-23","latest_pcr":79.83,"signal":"not_rise","pivot":100,"next_settle":{"date":"2026-09-25","kind":"週五選","weekday":"五"},"n_settle":277,"range":"2024-01-03 ~ 2026-09-23"},"buckets":{"wed":[{"label":"<90","n":30,"notfall":60,"notrise":73,"ret":-0.02},{"label":"90–100","n":16,"notfall":62,"notrise":69,"ret":-0.17},{"label":"100–110","n":28,"notfall":86,"notrise":54,"ret":0.45},{"label":"110–120","n":17,"notfall":88,"notrise":53,"ret":0.54},{"label":"≥120","n":51,"notfall":75,"notrise":55,"ret":0.35}],"all":[{"label":"<90","n":54,"notfall":63,"notrise":69,"ret":0.18},{"label":"90–100","n":32,"notfall":59,"notrise":72,"ret":-0.2},{"label":"100–110","n":52,"notfall":75,"notrise":60,"ret":0.26},{"label":"110–120","n":38,"notfall":66,"notrise":61,"ret":0.29},{"label":"≥120","n":101,"notfall":72,"notrise":59,"ret":0.17}],"fri":[{"label":"<90","n":25,"notfall":68,"notrise":64,"ret":0.39},{"label":"90–100","n":17,"notfall":59,"notrise":76,"ret":-0.4},{"label":"100–110","n":25,"notfall":64,"notrise":68,"ret":-0.1},{"label":"110–120","n":22,"notfall":50,"notrise":68,"ret":0.23},{"label":"≥120","n":51,"notfall":71,"notrise":65,"ret":0.0}]},"recent":[{"d":"2026-05-08","kind":"週五選","pcr":174.13,"red":false,"notfall":true,"notrise":true,"result":"守","ret":-0.79},{"d":"2026-05-13","kind":"週三選","pcr":161.65,"red":false,"notfall":true,"notrise":true,"result":"守","ret":-1.25},{"d":"2026-05-15","kind":"週五選","pcr":162.46,"red":false,"notfall":false,"notrise":true,"result":"壓","ret":-1.39},{"d":"2026-05-20","kind":"月選","pcr":122.41,"red":false,"notfall":false,"notrise":true,"result":"壓","ret":-0.39},{"d":"2026-05-22","kind":"週五選","pcr":140.2,"red":true,"notfall":true,"notrise":false,"result":"","ret":2.18},{"d":"2026-05-27","kind":"週三選","pcr":125.76,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":1.68},{"d":"2026-05-29","kind":"週五選","pcr":127.81,"red":true,"notfall":true,"notrise":false,"result":"","ret":2.51},{"d":"2026-06-03","kind":"週三選","pcr":142.84,"red":true,"notfall":true,"notrise":false,"result":"","ret":1.98},{"d":"2026-06-05","kind":"週五選","pcr":140.41,"red":false,"notfall":true,"notrise":true,"result":"守","ret":-1.33},{"d":"2026-06-10","kind":"週三選","pcr":133.64,"red":false,"notfall":false,"notrise":true,"result":"","ret":-3.31},{"d":"2026-06-12","kind":"週五選","pcr":133.33,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":2.36},{"d":"2026-06-17","kind":"月選","pcr":164.48,"red":true,"notfall":true,"notrise":false,"result":"守","ret":0.15},{"d":"2026-06-22","kind":"週五選","pcr":114.67,"red":true,"notfall":true,"notrise":false,"result":"","ret":2.75},{"d":"2026-06-24","kind":"週三選","pcr":98.99,"red":false,"notfall":false,"notrise":true,"result":"守","ret":-2.24},{"d":"2026-06-26","kind":"週五選","pcr":114.57,"red":false,"notfall":false,"notrise":true,"result":"","ret":-3.64},{"d":"2026-07-01","kind":"週三選","pcr":134.93,"red":true,"notfall":true,"notrise":false,"result":"壓","ret":1.94},{"d":"2026-07-03","kind":"週五選","pcr":120.46,"red":true,"notfall":true,"notrise":false,"result":"守","ret":0.08},{"d":"2026-07-08","kind":"週三選","pcr":98.68,"red":true,"notfall":true,"notrise":false,"result":"守","ret":0.56},{"d":"2026-07-13","kind":"週五選","pcr":118.81,"red":false,"notfall":false,"notrise":true,"result":"壓","ret":0.06},{"d":"2026-07-15","kind":"月選","pcr":99.31,"red":true,"notfall":true,"notrise":false,"result":"壓","ret":2.0},{"d":"2026-07-17","kind":"週五選","pcr":93.37,"red":false,"notfall":false,"notrise":true,"result":"","ret":-6.47},{"d":"2026-07-22","kind":"週三選","pcr":106.32,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":1.34},{"d":"2026-07-24","kind":"週五選","pcr":119.11,"red":false,"notfall":false,"notrise":true,"result":"","ret":-2.67},{"d":"2026-07-29","kind":"週三選","pcr":89.37,"red":false,"notfall":false,"notrise":true,"result":"守","ret":-3.76},{"d":"2026-07-31","kind":"週五選","pcr":79.43,"red":true,"notfall":true,"notrise":false,"result":"","ret":7.98},{"d":"2026-08-05","kind":"週三選","pcr":102.56,"red":true,"notfall":true,"notrise":false,"result":"壓","ret":2.88},{"d":"2026-08-07","kind":"週五選","pcr":109.77,"red":false,"notfall":false,"notrise":true,"result":"壓","ret":-0.38},{"d":"2026-08-12","kind":"週三選","pcr":123.58,"red":true,"notfall":true,"notrise":false,"result":"","ret":0.88},{"d":"2026-08-14","kind":"週五選","pcr":112.03,"red":false,"notfall":false,"notrise":true,"result":"壓","ret":-0.46},{"d":"2026-08-19","kind":"月選","pcr":104.64,"red":false,"notfall":true,"notrise":true,"result":"守","ret":-1.3},{"d":"2026-08-21","kind":"週五選","pcr":99.37,"red":true,"notfall":true,"notrise":false,"result":"守","ret":0.65},{"d":"2026-08-26","kind":"週三選","pcr":101.99,"red":true,"notfall":true,"notrise":false,"result":"守","ret":1.47},{"d":"2026-08-28","kind":"週五選","pcr":105.81,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":0.77},{"d":"2026-09-02","kind":"週三選","pcr":110.04,"red":false,"notfall":false,"notrise":true,"result":"","ret":-1.67},{"d":"2026-09-04","kind":"週五選","pcr":77.16,"red":true,"notfall":true,"notrise":false,"result":"","ret":1.51},{"d":"2026-09-09","kind":"週三選","pcr":105.23,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":0.16},{"d":"2026-09-11","kind":"週五選","pcr":82.67,"red":false,"notfall":true,"notrise":true,"result":"守","ret":-1.61},{"d":"2026-09-16","kind":"月選","pcr":85.89,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":0.74},{"d":"2026-09-18","kind":"週五選","pcr":76.5,"red":true,"notfall":true,"notrise":false,"result":"","ret":1.93},{"d":"2026-09-23","kind":"週三選","pcr":87.33,"red":true,"notfall":true,"notrise":true,"result":"壓","ret":0.75}]};
 const M = DATA.meta;
 const wk = {2:'三',4:'五'};
 
@@ -198,13 +210,15 @@ renderBT('wed');
 // ---- recent table ----
 document.getElementById('recent-body').innerHTML = DATA.recent.slice().reverse().map(r=>{
   const hi = r.pcr>=M.pivot;
-  const flags = `${r.notfall?'<span class="flag nf">守</span>':''}${r.notfall&&r.notrise?' ':''}${r.notrise?'<span class="flag nr">壓</span>':''}` || '<span class="flag dim">—</span>';
+  const res = r.result==='守' ? '<span class="flag nf">守</span>'
+            : r.result==='壓' ? '<span class="flag nr">壓</span>'
+            : '<span class="flag dim">—</span>';
   return `<tr>
     <td class="l num">${r.d}</td>
     <td class="l">${r.kind.replace(/;/g,' · ')}</td>
     <td class="num pcrpill ${hi?'hi':'lo'}">${r.pcr}</td>
     <td><span class="kbadge ${r.red?'r':'b'}">${r.red?'紅K':'黑K'}</span></td>
-    <td>${flags}</td>
+    <td>${res}</td>
     <td class="num" style="color:${r.ret>0?'var(--down)':r.ret<0?'var(--up)':'var(--ink-soft)'}">${r.ret>0?'+':''}${r.ret}%</td>
   </tr>`;
 }).join('');
@@ -225,4 +239,17 @@ tb.addEventListener('click',()=>{
   const nx=dark?'light':'dark'; document.documentElement.setAttribute('data-theme',nx);
   try{localStorage.setItem('pcr-theme',nx);}catch(e){}
 });
+
+// ---- 自訂 tooltip(靠右往左展開、超界夾回、點擊可切) ----
+const tt=document.createElement('div'); tt.className='ttpop'; tt.hidden=true; document.body.appendChild(tt);
+function showTip(el){
+  tt.textContent=el.getAttribute('data-tip'); tt.hidden=false;
+  const r=el.getBoundingClientRect(), tw=tt.offsetWidth, th=tt.offsetHeight;
+  let left=Math.max(8,Math.min(r.right-tw, window.innerWidth-tw-8));
+  let top=r.bottom+6; if(top+th>window.innerHeight-8) top=r.top-th-6;
+  tt.style.left=left+'px'; tt.style.top=Math.max(8,top)+'px';
+}
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]'); if(el) showTip(el);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]')) tt.hidden=true;});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-tip]'); if(el){ tt.hidden?showTip(el):(tt.hidden=true); }});
 </script>
