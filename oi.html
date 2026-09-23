@@ -1,0 +1,210 @@
+<title>選擇權未平倉分布</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --bg:#faf8f3; --surface:#ffffff; --stripe:#f5f1e8; --head:#f0ebe0;
+    --ink:#1b1a16; --ink-soft:#69645a; --ink-faint:#9c9583; --line:#e6e0d2; --line-soft:#efe9dd;
+    --call:#c0392b; --call-bg:rgba(192,57,43,.14); --put:#0f8a4c; --put-bg:rgba(15,138,76,.14);
+    --accent:#2a5da0; --accent-bg:rgba(42,93,160,.10); --rest-bg:#eceadf; --spot:#2a5da0;
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){ @media (prefers-color-scheme:dark){
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --call:#ff6a5f; --call-bg:rgba(255,106,95,.16); --put:#3cc879; --put-bg:rgba(60,200,121,.16);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116; --spot:#78ade6;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --call:#ff6a5f; --call-bg:rgba(255,106,95,.16); --put:#3cc879; --put-bg:rgba(60,200,121,.16);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116; --spot:#78ade6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;
+    font-family:"Noto Sans TC",system-ui,"Microsoft JhengHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:0 56px}
+  .sitenav{display:flex;gap:4px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;overflow-x:auto}
+  .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
+  .sitenav a:hover{background:var(--stripe);color:var(--ink)}
+  .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  .sitenav .navtheme{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;flex:none}
+  [data-tip]{cursor:help}
+  .ttpop{position:fixed;max-width:300px;background:var(--ink);color:var(--bg);padding:8px 11px;border-radius:8px;font-size:12px;line-height:1.55;z-index:200;pointer-events:none;box-shadow:0 8px 26px rgba(0,0,0,.28)}
+
+  header.top{border-bottom:1px solid var(--line);background:var(--surface)}
+  .top-in{max-width:820px;margin:0 auto;padding:14px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .logo{font-weight:900;font-size:19px;letter-spacing:.3px} .logo b{color:var(--accent)}
+  .tag{font-size:12.5px;color:var(--ink-soft)}
+
+  .ctrl{display:flex;align-items:center;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .ctrl select{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ctrl .du{font-size:12px;color:var(--ink-faint)}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+  .stat .k{font-size:11.5px;color:var(--ink-soft);font-weight:600}
+  .stat .v{font-size:19px;font-weight:800;margin-top:2px}
+  .stat .v small{font-size:11px;color:var(--ink-faint);font-weight:600}
+  .stat.call .v{color:var(--call)} .stat.put .v{color:var(--put)} .stat.spot .v{color:var(--spot)}
+
+  h2.sec{font-size:16px;font-weight:800;margin:28px 0 4px}
+  .hint{font-size:12.5px;color:var(--ink-faint);margin:0 0 10px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin:2px 0 12px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  /* 分布圖 */
+  .prow{display:grid;grid-template-columns:1fr 62px 1fr;align-items:center;gap:6px;height:22px}
+  .prow.spot{background:var(--accent-bg);border-radius:4px}
+  .pbar{height:14px;display:flex;align-items:center}
+  .pbar.put{justify-content:flex-end}
+  .pbar .b{height:14px;border-radius:3px}
+  .pbar.put .b{background:var(--put)} .pbar.call .b{background:var(--call)}
+  .pbar .n{font-size:10px;color:var(--ink-soft);margin:0 4px;white-space:nowrap}
+  .strike{text-align:center;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace}
+  .prow.sup .strike{color:var(--put)} .prow.res .strike{color:var(--call)}
+  .strike .tagm{display:block;font-size:9px;font-weight:600}
+  .prow.sup .tagm{color:var(--put)} .prow.res .tagm{color:var(--call)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{background:var(--head);color:var(--ink-soft);font-size:11.5px;font-weight:700;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th.l{text-align:center}
+  tbody td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  tbody tr:nth-child(even) td{background:var(--stripe)}
+  td.l{text-align:center;font-weight:700}
+  .cc{color:var(--call)} .pp{color:var(--put)}
+  tr.spotrow td{background:var(--accent-bg)!important}
+  .foot{margin-top:22px;font-size:12px;color:var(--ink-soft);line-height:1.75}
+  .foot b{color:var(--ink)} .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
+</style>
+
+<nav class="sitenav">
+  <a href="index.html">🧭 總覽</a>
+  <a href="board.html">📊 溢價看板</a>
+  <a href="pcr.html">🎯 PCR訊號</a>
+  <a href="oi.html" class="active">🧱 未平倉分布</a>
+  <button class="navtheme" id="theme" title="深淺色">◐</button>
+</nav>
+
+<header class="top">
+  <div class="top-in">
+    <span class="logo">選擇權<b>未平倉</b>分布</span>
+    <span class="tag">台指選 各履約價未平倉 · 每500點 · 大戶共識</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="ctrl">
+    <span style="font-size:13px;color:var(--ink-soft)">到期</span>
+    <select id="exp-select"></select>
+    <span class="du" id="du"></span>
+  </div>
+  <div class="summary" id="summary"></div>
+
+  <h2 class="sec">未平倉分布(每500點)</h2>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--put)"></span>Put(下方支撐)</span>
+    <span><span class="dot" style="background:var(--call)"></span>Call(上方壓力)</span>
+    <span><span class="dot" style="background:var(--accent)"></span>現價所在格</span>
+  </div>
+  <div class="card" id="profile"></div>
+
+  <h2 class="sec">每500點數據</h2>
+  <p class="hint" id="tbl-hint"></p>
+  <div class="card" style="padding:0;overflow-x:auto"><table>
+    <thead><tr><th class="l">履約價區間</th><th>Call口</th><th>Call%</th><th>Put口</th><th>Put%</th></tr></thead>
+    <tbody id="tbl-body"></tbody>
+  </table></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+<div id="tt" class="ttpop" hidden></div>
+
+<script>
+const DATA = {"meta":{"data_date":"2026-09-23","updated":"2026-09-24 02:33","spot":48157,"bucket":500},"expiries":[{"code":"202609W4","type":"週三選","expiry":"2026-09-23","days_to":0,"total_c":76151,"total_p":69699,"call_max":{"strike":48200,"oi":5489},"put_max":{"strike":48000,"oi":6354},"maxpain":48000,"buckets":[{"lo":40500,"c":0,"cp":0.0,"p":141,"pp":0.2},{"lo":41000,"c":0,"cp":0.0,"p":310,"pp":0.4},{"lo":41500,"c":0,"cp":0.0,"p":706,"pp":1.0},{"lo":42000,"c":0,"cp":0.0,"p":910,"pp":1.3},{"lo":42500,"c":0,"cp":0.0,"p":1277,"pp":1.8},{"lo":43000,"c":2,"cp":0.0,"p":1103,"pp":1.6},{"lo":43500,"c":6,"cp":0.0,"p":548,"pp":0.8},{"lo":44000,"c":493,"cp":0.6,"p":1763,"pp":2.5},{"lo":44500,"c":509,"cp":0.7,"p":1255,"pp":1.8},{"lo":45000,"c":599,"cp":0.8,"p":2574,"pp":3.7},{"lo":45500,"c":1217,"cp":1.6,"p":3898,"pp":5.6},{"lo":46000,"c":1404,"cp":1.8,"p":4304,"pp":6.2},{"lo":46500,"c":1618,"cp":2.1,"p":4593,"pp":6.6},{"lo":47000,"c":2803,"cp":3.7,"p":8980,"pp":12.9},{"lo":47500,"c":3548,"cp":4.7,"p":19166,"pp":27.5},{"lo":48000,"c":29225,"cp":38.4,"p":16820,"pp":24.1},{"lo":48500,"c":16013,"cp":21.0,"p":1212,"pp":1.7},{"lo":49000,"c":9112,"cp":12.0,"p":117,"pp":0.2},{"lo":49500,"c":2061,"cp":2.7,"p":9,"pp":0.0},{"lo":50000,"c":3352,"cp":4.4,"p":11,"pp":0.0},{"lo":50500,"c":2621,"cp":3.4,"p":0,"pp":0.0},{"lo":51000,"c":509,"cp":0.7,"p":2,"pp":0.0},{"lo":51500,"c":14,"cp":0.0,"p":0,"pp":0.0},{"lo":52000,"c":1045,"cp":1.4,"p":0,"pp":0.0},{"lo":52500,"c":0,"cp":0.0,"p":0,"pp":0.0}]},{"code":"202609F4","type":"週五選","expiry":"2026-09-25","days_to":2,"total_c":15451,"total_p":9818,"call_max":{"strike":51900,"oi":2455},"put_max":{"strike":43000,"oi":1268},"maxpain":46750,"buckets":[{"lo":40500,"c":0,"cp":0.0,"p":95,"pp":1.0},{"lo":41000,"c":0,"cp":0.0,"p":37,"pp":0.4},{"lo":41500,"c":0,"cp":0.0,"p":1012,"pp":10.3},{"lo":42000,"c":0,"cp":0.0,"p":181,"pp":1.8},{"lo":42500,"c":0,"cp":0.0,"p":597,"pp":6.1},{"lo":43000,"c":0,"cp":0.0,"p":1309,"pp":13.3},{"lo":43500,"c":0,"cp":0.0,"p":93,"pp":0.9},{"lo":44000,"c":3,"cp":0.0,"p":292,"pp":3.0},{"lo":44500,"c":5,"cp":0.0,"p":447,"pp":4.6},{"lo":45000,"c":556,"cp":3.6,"p":315,"pp":3.2},{"lo":45500,"c":590,"cp":3.8,"p":839,"pp":8.5},{"lo":46000,"c":508,"cp":3.3,"p":1048,"pp":10.7},{"lo":46500,"c":1433,"cp":9.3,"p":1254,"pp":12.8},{"lo":47000,"c":663,"cp":4.3,"p":969,"pp":9.9},{"lo":47500,"c":297,"cp":1.9,"p":706,"pp":7.2},{"lo":48000,"c":802,"cp":5.2,"p":539,"pp":5.5},{"lo":48500,"c":1057,"cp":6.8,"p":57,"pp":0.6},{"lo":49000,"c":994,"cp":6.4,"p":20,"pp":0.2},{"lo":49500,"c":1477,"cp":9.6,"p":4,"pp":0.0},{"lo":50000,"c":1187,"cp":7.7,"p":4,"pp":0.0},{"lo":50500,"c":266,"cp":1.7,"p":0,"pp":0.0},{"lo":51000,"c":1769,"cp":11.4,"p":0,"pp":0.0},{"lo":51500,"c":3596,"cp":23.3,"p":0,"pp":0.0},{"lo":52000,"c":235,"cp":1.5,"p":0,"pp":0.0},{"lo":52500,"c":13,"cp":0.1,"p":0,"pp":0.0}]},{"code":"202609W5","type":"週三選","expiry":"2026-09-30","days_to":7,"total_c":4638,"total_p":5579,"call_max":{"strike":46700,"oi":505},"put_max":{"strike":46000,"oi":702},"maxpain":46700,"buckets":[{"lo":40500,"c":0,"cp":0.0,"p":221,"pp":4.0},{"lo":41000,"c":0,"cp":0.0,"p":312,"pp":5.6},{"lo":41500,"c":0,"cp":0.0,"p":624,"pp":11.2},{"lo":42000,"c":0,"cp":0.0,"p":355,"pp":6.4},{"lo":42500,"c":0,"cp":0.0,"p":38,"pp":0.7},{"lo":43000,"c":0,"cp":0.0,"p":67,"pp":1.2},{"lo":43500,"c":6,"cp":0.1,"p":71,"pp":1.3},{"lo":44000,"c":5,"cp":0.1,"p":76,"pp":1.4},{"lo":44500,"c":0,"cp":0.0,"p":407,"pp":7.3},{"lo":45000,"c":2,"cp":0.0,"p":394,"pp":7.1},{"lo":45500,"c":4,"cp":0.1,"p":485,"pp":8.7},{"lo":46000,"c":510,"cp":11.0,"p":1073,"pp":19.2},{"lo":46500,"c":1019,"cp":22.0,"p":420,"pp":7.5},{"lo":47000,"c":72,"cp":1.6,"p":440,"pp":7.9},{"lo":47500,"c":243,"cp":5.2,"p":404,"pp":7.2},{"lo":48000,"c":196,"cp":4.2,"p":146,"pp":2.6},{"lo":48500,"c":260,"cp":5.6,"p":32,"pp":0.6},{"lo":49000,"c":596,"cp":12.9,"p":10,"pp":0.2},{"lo":49500,"c":293,"cp":6.3,"p":3,"pp":0.1},{"lo":50000,"c":613,"cp":13.2,"p":1,"pp":0.0},{"lo":50500,"c":165,"cp":3.6,"p":0,"pp":0.0},{"lo":51000,"c":190,"cp":4.1,"p":0,"pp":0.0},{"lo":51500,"c":57,"cp":1.2,"p":0,"pp":0.0},{"lo":52000,"c":8,"cp":0.2,"p":0,"pp":0.0},{"lo":52500,"c":399,"cp":8.6,"p":0,"pp":0.0}]},{"code":"202610F1","type":"週五選","expiry":"2026-10-02","days_to":9,"total_c":451,"total_p":957,"call_max":{"strike":50000,"oi":96},"put_max":{"strike":46700,"oi":169},"maxpain":47500,"buckets":[{"lo":41500,"c":0,"cp":0.0,"p":52,"pp":5.4},{"lo":42000,"c":0,"cp":0.0,"p":44,"pp":4.6},{"lo":42500,"c":0,"cp":0.0,"p":39,"pp":4.1},{"lo":43000,"c":0,"cp":0.0,"p":66,"pp":6.9},{"lo":43500,"c":0,"cp":0.0,"p":23,"pp":2.4},{"lo":44000,"c":0,"cp":0.0,"p":217,"pp":22.7},{"lo":44500,"c":0,"cp":0.0,"p":22,"pp":2.3},{"lo":45000,"c":0,"cp":0.0,"p":23,"pp":2.4},{"lo":45500,"c":0,"cp":0.0,"p":34,"pp":3.6},{"lo":46000,"c":36,"cp":8.0,"p":88,"pp":9.2},{"lo":46500,"c":20,"cp":4.4,"p":219,"pp":22.9},{"lo":47000,"c":6,"cp":1.3,"p":37,"pp":3.9},{"lo":47500,"c":18,"cp":4.0,"p":50,"pp":5.2},{"lo":48000,"c":22,"cp":4.9,"p":38,"pp":4.0},{"lo":48500,"c":57,"cp":12.6,"p":5,"pp":0.5},{"lo":49000,"c":42,"cp":9.3,"p":0,"pp":0.0},{"lo":49500,"c":36,"cp":8.0,"p":0,"pp":0.0},{"lo":50000,"c":111,"cp":24.6,"p":0,"pp":0.0},{"lo":50500,"c":13,"cp":2.9,"p":0,"pp":0.0},{"lo":51000,"c":39,"cp":8.6,"p":0,"pp":0.0},{"lo":51500,"c":39,"cp":8.6,"p":0,"pp":0.0},{"lo":52000,"c":4,"cp":0.9,"p":0,"pp":0.0},{"lo":52500,"c":8,"cp":1.8,"p":0,"pp":0.0}]},{"code":"202610W1","type":"週三選","expiry":"2026-10-07","days_to":14,"total_c":128,"total_p":885,"call_max":{"strike":48000,"oi":66},"put_max":{"strike":46700,"oi":334},"maxpain":47900,"buckets":[{"lo":43000,"c":0,"cp":0.0,"p":45,"pp":5.1},{"lo":43500,"c":0,"cp":0.0,"p":7,"pp":0.8},{"lo":44000,"c":0,"cp":0.0,"p":334,"pp":37.7},{"lo":44500,"c":0,"cp":0.0,"p":63,"pp":7.1},{"lo":45000,"c":0,"cp":0.0,"p":24,"pp":2.7},{"lo":45500,"c":0,"cp":0.0,"p":25,"pp":2.8},{"lo":46000,"c":0,"cp":0.0,"p":16,"pp":1.8},{"lo":46500,"c":0,"cp":0.0,"p":340,"pp":38.4},{"lo":47000,"c":5,"cp":3.9,"p":10,"pp":1.1},{"lo":47500,"c":0,"cp":0.0,"p":17,"pp":1.9},{"lo":48000,"c":71,"cp":55.5,"p":4,"pp":0.5},{"lo":48500,"c":17,"cp":13.3,"p":0,"pp":0.0},{"lo":49000,"c":9,"cp":7.0,"p":0,"pp":0.0},{"lo":49500,"c":3,"cp":2.3,"p":0,"pp":0.0},{"lo":50000,"c":3,"cp":2.3,"p":0,"pp":0.0},{"lo":50500,"c":9,"cp":7.0,"p":0,"pp":0.0},{"lo":51000,"c":4,"cp":3.1,"p":0,"pp":0.0},{"lo":51500,"c":3,"cp":2.3,"p":0,"pp":0.0},{"lo":52000,"c":2,"cp":1.6,"p":0,"pp":0.0},{"lo":52500,"c":2,"cp":1.6,"p":0,"pp":0.0}]},{"code":"202610","type":"月選","expiry":"2026-10-21","days_to":28,"total_c":18791,"total_p":16564,"call_max":{"strike":50000,"oi":1084},"put_max":{"strike":40000,"oi":1070},"maxpain":46400,"buckets":[{"lo":33500,"c":0,"cp":0.0,"p":346,"pp":2.1},{"lo":34000,"c":0,"cp":0.0,"p":278,"pp":1.7},{"lo":34500,"c":0,"cp":0.0,"p":52,"pp":0.3},{"lo":35000,"c":0,"cp":0.0,"p":218,"pp":1.3},{"lo":35500,"c":0,"cp":0.0,"p":59,"pp":0.4},{"lo":36000,"c":0,"cp":0.0,"p":238,"pp":1.4},{"lo":36500,"c":0,"cp":0.0,"p":94,"pp":0.6},{"lo":37000,"c":0,"cp":0.0,"p":235,"pp":1.4},{"lo":37500,"c":0,"cp":0.0,"p":173,"pp":1.0},{"lo":38000,"c":0,"cp":0.0,"p":370,"pp":2.2},{"lo":38500,"c":1,"cp":0.0,"p":678,"pp":4.1},{"lo":39000,"c":0,"cp":0.0,"p":739,"pp":4.5},{"lo":39500,"c":5,"cp":0.0,"p":448,"pp":2.7},{"lo":40000,"c":1,"cp":0.0,"p":1261,"pp":7.6},{"lo":40500,"c":1,"cp":0.0,"p":273,"pp":1.6},{"lo":41000,"c":5,"cp":0.0,"p":485,"pp":2.9},{"lo":41500,"c":12,"cp":0.1,"p":310,"pp":1.9},{"lo":42000,"c":6,"cp":0.0,"p":782,"pp":4.7},{"lo":42500,"c":12,"cp":0.1,"p":506,"pp":3.1},{"lo":43000,"c":3,"cp":0.0,"p":1279,"pp":7.7},{"lo":43500,"c":610,"cp":3.2,"p":590,"pp":3.6},{"lo":44000,"c":307,"cp":1.6,"p":1114,"pp":6.7},{"lo":44500,"c":854,"cp":4.5,"p":974,"pp":5.9},{"lo":45000,"c":578,"cp":3.1,"p":948,"pp":5.7},{"lo":45500,"c":303,"cp":1.6,"p":442,"pp":2.7},{"lo":46000,"c":626,"cp":3.3,"p":711,"pp":4.3},{"lo":46500,"c":635,"cp":3.4,"p":666,"pp":4.0},{"lo":47000,"c":1858,"cp":9.9,"p":541,"pp":3.3},{"lo":47500,"c":443,"cp":2.4,"p":709,"pp":4.3},{"lo":48000,"c":1405,"cp":7.5,"p":642,"pp":3.9},{"lo":48500,"c":898,"cp":4.8,"p":261,"pp":1.6},{"lo":49000,"c":848,"cp":4.5,"p":49,"pp":0.3},{"lo":49500,"c":888,"cp":4.7,"p":53,"pp":0.3},{"lo":50000,"c":1340,"cp":7.1,"p":26,"pp":0.2},{"lo":50500,"c":693,"cp":3.7,"p":5,"pp":0.0},{"lo":51000,"c":679,"cp":3.6,"p":7,"pp":0.0},{"lo":51500,"c":315,"cp":1.7,"p":1,"pp":0.0},{"lo":52000,"c":996,"cp":5.3,"p":1,"pp":0.0},{"lo":52500,"c":326,"cp":1.7,"p":0,"pp":0.0},{"lo":53000,"c":586,"cp":3.1,"p":0,"pp":0.0},{"lo":53500,"c":773,"cp":4.1,"p":0,"pp":0.0},{"lo":54000,"c":2152,"cp":11.5,"p":0,"pp":0.0},{"lo":54500,"c":624,"cp":3.3,"p":0,"pp":0.0},{"lo":55000,"c":8,"cp":0.0,"p":0,"pp":0.0}]},{"code":"202611","type":"月選","expiry":"2026-11-18","days_to":56,"total_c":978,"total_p":1385,"call_max":{"strike":50000,"oi":150},"put_max":{"strike":43000,"oi":129},"maxpain":47500,"buckets":[{"lo":38000,"c":0,"cp":0.0,"p":127,"pp":9.2},{"lo":38500,"c":0,"cp":0.0,"p":58,"pp":4.2},{"lo":39000,"c":0,"cp":0.0,"p":58,"pp":4.2},{"lo":39500,"c":0,"cp":0.0,"p":60,"pp":4.3},{"lo":40000,"c":0,"cp":0.0,"p":90,"pp":6.5},{"lo":40500,"c":0,"cp":0.0,"p":38,"pp":2.7},{"lo":41000,"c":0,"cp":0.0,"p":47,"pp":3.4},{"lo":41500,"c":0,"cp":0.0,"p":42,"pp":3.0},{"lo":42000,"c":0,"cp":0.0,"p":89,"pp":6.4},{"lo":42500,"c":0,"cp":0.0,"p":46,"pp":3.3},{"lo":43000,"c":2,"cp":0.2,"p":170,"pp":12.3},{"lo":43500,"c":1,"cp":0.1,"p":27,"pp":1.9},{"lo":44000,"c":1,"cp":0.1,"p":83,"pp":6.0},{"lo":44500,"c":0,"cp":0.0,"p":36,"pp":2.6},{"lo":45000,"c":7,"cp":0.7,"p":74,"pp":5.3},{"lo":45500,"c":2,"cp":0.2,"p":94,"pp":6.8},{"lo":46000,"c":8,"cp":0.8,"p":46,"pp":3.3},{"lo":46500,"c":15,"cp":1.5,"p":33,"pp":2.4},{"lo":47000,"c":17,"cp":1.7,"p":102,"pp":7.4},{"lo":47500,"c":46,"cp":4.7,"p":32,"pp":2.3},{"lo":48000,"c":80,"cp":8.2,"p":23,"pp":1.7},{"lo":48500,"c":22,"cp":2.2,"p":5,"pp":0.4},{"lo":49000,"c":27,"cp":2.8,"p":5,"pp":0.4},{"lo":49500,"c":29,"cp":3.0,"p":0,"pp":0.0},{"lo":50000,"c":203,"cp":20.8,"p":0,"pp":0.0},{"lo":50500,"c":52,"cp":5.3,"p":0,"pp":0.0},{"lo":51000,"c":75,"cp":7.7,"p":0,"pp":0.0},{"lo":51500,"c":52,"cp":5.3,"p":0,"pp":0.0},{"lo":52000,"c":78,"cp":8.0,"p":0,"pp":0.0},{"lo":52500,"c":30,"cp":3.1,"p":0,"pp":0.0},{"lo":53000,"c":55,"cp":5.6,"p":0,"pp":0.0},{"lo":53500,"c":15,"cp":1.5,"p":0,"pp":0.0},{"lo":54000,"c":117,"cp":12.0,"p":0,"pp":0.0},{"lo":54500,"c":41,"cp":4.2,"p":0,"pp":0.0},{"lo":55000,"c":3,"cp":0.3,"p":0,"pp":0.0}]},{"code":"202612","type":"月選","expiry":"2026-12-16","days_to":84,"total_c":4284,"total_p":2602,"call_max":{"strike":52000,"oi":548},"put_max":{"strike":40800,"oi":300},"maxpain":44400,"buckets":[{"lo":25000,"c":5,"cp":0.1,"p":210,"pp":8.1},{"lo":25500,"c":0,"cp":0.0,"p":25,"pp":1.0},{"lo":26000,"c":1,"cp":0.0,"p":144,"pp":5.5},{"lo":26500,"c":119,"cp":2.8,"p":43,"pp":1.7},{"lo":27000,"c":1,"cp":0.0,"p":24,"pp":0.9},{"lo":27500,"c":0,"cp":0.0,"p":14,"pp":0.5},{"lo":28000,"c":0,"cp":0.0,"p":55,"pp":2.1},{"lo":28500,"c":0,"cp":0.0,"p":13,"pp":0.5},{"lo":29000,"c":0,"cp":0.0,"p":11,"pp":0.4},{"lo":29500,"c":0,"cp":0.0,"p":5,"pp":0.2},{"lo":30000,"c":0,"cp":0.0,"p":78,"pp":3.0},{"lo":30500,"c":1,"cp":0.0,"p":12,"pp":0.5},{"lo":31000,"c":0,"cp":0.0,"p":32,"pp":1.2},{"lo":31500,"c":0,"cp":0.0,"p":3,"pp":0.1},{"lo":32000,"c":0,"cp":0.0,"p":19,"pp":0.7},{"lo":32500,"c":0,"cp":0.0,"p":19,"pp":0.7},{"lo":33000,"c":0,"cp":0.0,"p":25,"pp":1.0},{"lo":33500,"c":0,"cp":0.0,"p":5,"pp":0.2},{"lo":34000,"c":0,"cp":0.0,"p":21,"pp":0.8},{"lo":34500,"c":0,"cp":0.0,"p":4,"pp":0.2},{"lo":35000,"c":0,"cp":0.0,"p":91,"pp":3.5},{"lo":35500,"c":1,"cp":0.0,"p":2,"pp":0.1},{"lo":36000,"c":0,"cp":0.0,"p":76,"pp":2.9},{"lo":36500,"c":0,"cp":0.0,"p":56,"pp":2.2},{"lo":37000,"c":4,"cp":0.1,"p":122,"pp":4.7},{"lo":37500,"c":2,"cp":0.0,"p":21,"pp":0.8},{"lo":38000,"c":18,"cp":0.4,"p":175,"pp":6.7},{"lo":38500,"c":3,"cp":0.1,"p":13,"pp":0.5},{"lo":39000,"c":4,"cp":0.1,"p":78,"pp":3.0},{"lo":39500,"c":0,"cp":0.0,"p":13,"pp":0.5},{"lo":40000,"c":13,"cp":0.3,"p":95,"pp":3.7},{"lo":40500,"c":16,"cp":0.4,"p":304,"pp":11.7},{"lo":41000,"c":35,"cp":0.8,"p":66,"pp":2.5},{"lo":41500,"c":26,"cp":0.6,"p":25,"pp":1.0},{"lo":42000,"c":73,"cp":1.7,"p":117,"pp":4.5},{"lo":42500,"c":3,"cp":0.1,"p":2,"pp":0.1},{"lo":43000,"c":65,"cp":1.5,"p":73,"pp":2.8},{"lo":43500,"c":2,"cp":0.0,"p":17,"pp":0.7},{"lo":44000,"c":7,"cp":0.2,"p":123,"pp":4.7},{"lo":44500,"c":13,"cp":0.3,"p":21,"pp":0.8},{"lo":45000,"c":6,"cp":0.1,"p":74,"pp":2.8},{"lo":45500,"c":10,"cp":0.2,"p":11,"pp":0.4},{"lo":46000,"c":264,"cp":6.2,"p":38,"pp":1.5},{"lo":46500,"c":65,"cp":1.5,"p":12,"pp":0.5},{"lo":47000,"c":367,"cp":8.6,"p":33,"pp":1.3},{"lo":47500,"c":62,"cp":1.4,"p":8,"pp":0.3},{"lo":48000,"c":71,"cp":1.7,"p":19,"pp":0.7},{"lo":48500,"c":8,"cp":0.2,"p":3,"pp":0.1},{"lo":49000,"c":443,"cp":10.3,"p":9,"pp":0.3},{"lo":49500,"c":11,"cp":0.3,"p":0,"pp":0.0},{"lo":50000,"c":190,"cp":4.4,"p":20,"pp":0.8},{"lo":50500,"c":14,"cp":0.3,"p":2,"pp":0.1},{"lo":51000,"c":41,"cp":1.0,"p":0,"pp":0.0},{"lo":51500,"c":5,"cp":0.1,"p":0,"pp":0.0},{"lo":52000,"c":569,"cp":13.3,"p":0,"pp":0.0},{"lo":52500,"c":8,"cp":0.2,"p":0,"pp":0.0},{"lo":53000,"c":411,"cp":9.6,"p":0,"pp":0.0},{"lo":53500,"c":5,"cp":0.1,"p":0,"pp":0.0},{"lo":54000,"c":326,"cp":7.6,"p":0,"pp":0.0},{"lo":54500,"c":30,"cp":0.7,"p":0,"pp":0.0},{"lo":55000,"c":57,"cp":1.3,"p":0,"pp":0.0},{"lo":55500,"c":130,"cp":3.0,"p":0,"pp":0.0},{"lo":56000,"c":14,"cp":0.3,"p":0,"pp":0.0},{"lo":56500,"c":4,"cp":0.1,"p":0,"pp":0.0},{"lo":57000,"c":761,"cp":17.8,"p":121,"pp":4.7}]},{"code":"202703","type":"月選","expiry":"2027-03-17","days_to":175,"total_c":3697,"total_p":746,"call_max":{"strike":56000,"oi":1442},"put_max":{"strike":31800,"oi":103},"maxpain":47000,"buckets":[{"lo":31500,"c":1,"cp":0.0,"p":103,"pp":13.8},{"lo":32000,"c":0,"cp":0.0,"p":20,"pp":2.7},{"lo":32500,"c":0,"cp":0.0,"p":1,"pp":0.1},{"lo":33000,"c":0,"cp":0.0,"p":13,"pp":1.7},{"lo":33500,"c":0,"cp":0.0,"p":22,"pp":2.9},{"lo":34000,"c":0,"cp":0.0,"p":9,"pp":1.2},{"lo":34500,"c":0,"cp":0.0,"p":5,"pp":0.7},{"lo":35000,"c":0,"cp":0.0,"p":55,"pp":7.4},{"lo":35500,"c":0,"cp":0.0,"p":28,"pp":3.8},{"lo":36000,"c":0,"cp":0.0,"p":63,"pp":8.4},{"lo":36500,"c":4,"cp":0.1,"p":19,"pp":2.5},{"lo":37000,"c":0,"cp":0.0,"p":40,"pp":5.4},{"lo":37500,"c":0,"cp":0.0,"p":10,"pp":1.3},{"lo":38000,"c":2,"cp":0.1,"p":44,"pp":5.9},{"lo":38500,"c":0,"cp":0.0,"p":4,"pp":0.5},{"lo":39000,"c":0,"cp":0.0,"p":11,"pp":1.5},{"lo":39500,"c":0,"cp":0.0,"p":9,"pp":1.2},{"lo":40000,"c":2,"cp":0.1,"p":42,"pp":5.6},{"lo":40500,"c":0,"cp":0.0,"p":2,"pp":0.3},{"lo":41000,"c":0,"cp":0.0,"p":7,"pp":0.9},{"lo":41500,"c":0,"cp":0.0,"p":1,"pp":0.1},{"lo":42000,"c":1,"cp":0.0,"p":12,"pp":1.6},{"lo":42500,"c":2,"cp":0.1,"p":2,"pp":0.3},{"lo":43000,"c":2,"cp":0.1,"p":4,"pp":0.5},{"lo":43500,"c":1,"cp":0.0,"p":1,"pp":0.1},{"lo":44000,"c":16,"cp":0.4,"p":21,"pp":2.8},{"lo":44500,"c":3,"cp":0.1,"p":5,"pp":0.7},{"lo":45000,"c":4,"cp":0.1,"p":6,"pp":0.8},{"lo":45500,"c":3,"cp":0.1,"p":2,"pp":0.3},{"lo":46000,"c":11,"cp":0.3,"p":7,"pp":0.9},{"lo":46500,"c":10,"cp":0.3,"p":2,"pp":0.3},{"lo":47000,"c":152,"cp":4.1,"p":56,"pp":7.5},{"lo":47500,"c":2,"cp":0.1,"p":6,"pp":0.8},{"lo":48000,"c":78,"cp":2.1,"p":62,"pp":8.3},{"lo":48500,"c":23,"cp":0.6,"p":2,"pp":0.3},{"lo":49000,"c":58,"cp":1.6,"p":8,"pp":1.1},{"lo":49500,"c":2,"cp":0.1,"p":2,"pp":0.3},{"lo":50000,"c":29,"cp":0.8,"p":23,"pp":3.1},{"lo":50500,"c":3,"cp":0.1,"p":2,"pp":0.3},{"lo":51000,"c":1428,"cp":38.6,"p":6,"pp":0.8},{"lo":51500,"c":4,"cp":0.1,"p":2,"pp":0.3},{"lo":52000,"c":23,"cp":0.6,"p":3,"pp":0.4},{"lo":52500,"c":1,"cp":0.0,"p":2,"pp":0.3},{"lo":53000,"c":19,"cp":0.5,"p":2,"pp":0.3},{"lo":53500,"c":3,"cp":0.1,"p":0,"pp":0.0},{"lo":54000,"c":32,"cp":0.9,"p":0,"pp":0.0},{"lo":54500,"c":6,"cp":0.2,"p":0,"pp":0.0},{"lo":55000,"c":41,"cp":1.1,"p":0,"pp":0.0},{"lo":55500,"c":5,"cp":0.1,"p":0,"pp":0.0},{"lo":56000,"c":1460,"cp":39.5,"p":0,"pp":0.0},{"lo":56500,"c":9,"cp":0.2,"p":0,"pp":0.0},{"lo":57000,"c":257,"cp":7.0,"p":0,"pp":0.0}]},{"code":"202706","type":"月選","expiry":"2027-06-16","days_to":266,"total_c":262,"total_p":323,"call_max":{"strike":50000,"oi":58},"put_max":{"strike":47000,"oi":70},"maxpain":49000,"buckets":[{"lo":36500,"c":1,"cp":0.4,"p":21,"pp":6.5},{"lo":37000,"c":0,"cp":0.0,"p":18,"pp":5.6},{"lo":37500,"c":0,"cp":0.0,"p":16,"pp":5.0},{"lo":38000,"c":0,"cp":0.0,"p":43,"pp":13.3},{"lo":38500,"c":0,"cp":0.0,"p":22,"pp":6.8},{"lo":39000,"c":0,"cp":0.0,"p":11,"pp":3.4},{"lo":39500,"c":0,"cp":0.0,"p":20,"pp":6.2},{"lo":40000,"c":1,"cp":0.4,"p":3,"pp":0.9},{"lo":40500,"c":0,"cp":0.0,"p":2,"pp":0.6},{"lo":41000,"c":2,"cp":0.8,"p":1,"pp":0.3},{"lo":41500,"c":0,"cp":0.0,"p":4,"pp":1.2},{"lo":42000,"c":0,"cp":0.0,"p":2,"pp":0.6},{"lo":42500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":43000,"c":1,"cp":0.4,"p":5,"pp":1.5},{"lo":43500,"c":0,"cp":0.0,"p":2,"pp":0.6},{"lo":44000,"c":1,"cp":0.4,"p":4,"pp":1.2},{"lo":44500,"c":0,"cp":0.0,"p":7,"pp":2.2},{"lo":45000,"c":1,"cp":0.4,"p":3,"pp":0.9},{"lo":45500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":46000,"c":2,"cp":0.8,"p":2,"pp":0.6},{"lo":46500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":47000,"c":0,"cp":0.0,"p":95,"pp":29.4},{"lo":47500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":48000,"c":7,"cp":2.7,"p":22,"pp":6.8},{"lo":48500,"c":0,"cp":0.0,"p":1,"pp":0.3},{"lo":49000,"c":26,"cp":9.9,"p":7,"pp":2.2},{"lo":49500,"c":15,"cp":5.7,"p":0,"pp":0.0},{"lo":50000,"c":104,"cp":39.7,"p":12,"pp":3.7},{"lo":50500,"c":10,"cp":3.8,"p":0,"pp":0.0},{"lo":51000,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":51500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":52000,"c":3,"cp":1.1,"p":0,"pp":0.0},{"lo":52500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":53000,"c":2,"cp":0.8,"p":0,"pp":0.0},{"lo":53500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":54000,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":54500,"c":0,"cp":0.0,"p":0,"pp":0.0},{"lo":55000,"c":35,"cp":13.4,"p":0,"pp":0.0},{"lo":55500,"c":16,"cp":6.1,"p":0,"pp":0.0},{"lo":56000,"c":7,"cp":2.7,"p":0,"pp":0.0},{"lo":56500,"c":17,"cp":6.5,"p":0,"pp":0.0},{"lo":57000,"c":11,"cp":4.2,"p":0,"pp":0.0}]}]};
+const M = DATA.meta, EXPS = DATA.expiries;
+const comma = n => Number(n).toLocaleString('en-US');
+let cur = null;
+
+// ---- 到期下拉 ----
+const sel = document.getElementById('exp-select');
+EXPS.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i;
+  o.textContent = `${e.expiry||e.code} ${e.type}` + (e.days_to!=null?`（剩${e.days_to}天）`:''); sel.appendChild(o); });
+let defIdx = EXPS.findIndex(e=>e.days_to!=null && e.days_to>=1); if(defIdx<0) defIdx=0;
+sel.selectedIndex = defIdx;
+sel.addEventListener('change',()=>render(+sel.value));
+
+function render(idx){
+  cur = EXPS[idx];
+  const e = cur;
+  document.getElementById('du').textContent = `資料日 ${M.data_date}`;
+  // summary
+  const pc = e.total_c? (e.total_p/e.total_c) : 0;
+  document.getElementById('summary').innerHTML = `
+    <div class="stat spot"><div class="k">現價(加權指數)</div><div class="v num">${M.spot?comma(M.spot):'—'}</div></div>
+    <div class="stat"><div class="k">到期日</div><div class="v num" style="font-size:16px">${e.expiry||'—'}</div></div>
+    <div class="stat put"><div class="k">支撐(Put最大)</div><div class="v num">${comma(e.put_max.strike)}<small> ${comma(e.put_max.oi)}口</small></div></div>
+    <div class="stat call"><div class="k">壓力(Call最大)</div><div class="v num">${comma(e.call_max.strike)}<small> ${comma(e.call_max.oi)}口</small></div></div>
+    <div class="stat"><div class="k">最大痛點</div><div class="v num">${comma(e.maxpain)}</div></div>
+    <div class="stat"><div class="k">單邊總口(Call/Put)</div><div class="v num" style="font-size:15px"><span class="cc">${comma(e.total_c)}</span>/<span class="pp">${comma(e.total_p)}</span></div></div>
+    <div class="stat"><div class="k">P/C 比</div><div class="v num">${(pc*100).toFixed(0)}%</div></div>`;
+
+  // 分布圖(高履約價在上)
+  const bk = e.buckets.slice().sort((a,b)=>b.lo-a.lo);
+  const maxOI = Math.max(1, ...e.buckets.map(x=>Math.max(x.c,x.p)));
+  const spotBucket = M.spot!=null ? Math.floor(M.spot/M.bucket)*M.bucket : null;
+  document.getElementById('profile').innerHTML = bk.map(b=>{
+    const isSup = b.lo===Math.floor(e.put_max.strike/M.bucket)*M.bucket;
+    const isRes = b.lo===Math.floor(e.call_max.strike/M.bucket)*M.bucket;
+    const isSpot = b.lo===spotBucket;
+    const cls=['prow', isSpot?'spot':'', isSup?'sup':'', isRes?'res':''].filter(Boolean).join(' ');
+    const cw=(b.c/maxOI*100), pw=(b.p/maxOI*100);
+    return `<div class="${cls}">
+      <div class="pbar put">${b.p?`<span class="n">${comma(b.p)}</span>`:''}<div class="b" style="width:${pw}%"></div></div>
+      <div class="strike">${b.lo/1000}k${isSup?'<span class="tagm">支撐</span>':isRes?'<span class="tagm">壓力</span>':isSpot?'<span class="tagm" style="color:var(--accent)">現價</span>':''}</div>
+      <div class="pbar call"><div class="b" style="width:${cw}%"></div>${b.c?`<span class="n">${comma(b.c)}</span>`:''}</div>
+    </div>`;
+  }).join('');
+
+  // 數據表(高→低)
+  document.getElementById('tbl-hint').textContent =
+    `單邊總口數:Call ${comma(e.total_c)} / Put ${comma(e.total_p)};% 為各500點佔該邊總口數比例。`;
+  document.getElementById('tbl-body').innerHTML = bk.map(b=>{
+    const isSpot = b.lo===spotBucket;
+    return `<tr class="${isSpot?'spotrow':''}">
+      <td class="l num">${comma(b.lo)}–${comma(b.lo+M.bucket)}</td>
+      <td class="num cc">${b.c?comma(b.c):''}</td>
+      <td class="num cc">${b.c?b.cp+'%':''}</td>
+      <td class="num pp">${b.p?comma(b.p):''}</td>
+      <td class="num pp">${b.p?b.pp+'%':''}</td>
+    </tr>`;
+  }).join('');
+}
+render(defIdx);
+
+document.getElementById('foot').innerHTML =
+  `<b>資料</b> = 台指選(TXO)各履約價「未沖銷契約數(未平倉)」,一般盤,資料日 ${M.data_date}。<br>`+
+  `<b>支撐</b> = Put 未平倉最大的履約價(下方大戶防守);<b>壓力</b> = Call 未平倉最大的履約價(上方大戶防守)。<br>`+
+  `<b>最大痛點(Max Pain)</b> = 讓買方選擇權總價值最小(賣方最有利)的結算價,常被視為大戶想結算的位置。<br>`+
+  `<b>每500點比例</b> = 該價格帶未平倉 ÷ 該邊(Call或Put)總未平倉。重跑 <code>選擇權未平倉分布_抓取.py</code> 更新。更新於 ${M.updated}。`;
+
+// theme + tooltip
+const tb=document.getElementById('theme');
+try{const t=localStorage.getItem('oi-theme'); if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}
+tb.addEventListener('click',()=>{const cur=document.documentElement.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  const nx=dark?'light':'dark'; document.documentElement.setAttribute('data-theme',nx);
+  try{localStorage.setItem('oi-theme',nx);}catch(e){}});
+const tt=document.getElementById('tt');
+function showTip(el){tt.textContent=el.getAttribute('data-tip');tt.hidden=false;
+  const r=el.getBoundingClientRect(),tw=tt.offsetWidth,th=tt.offsetHeight;
+  let left=Math.max(8,Math.min(r.right-tw,window.innerWidth-tw-8));let top=r.bottom+6;
+  if(top+th>window.innerHeight-8)top=r.top-th-6; tt.style.left=left+'px';tt.style.top=Math.max(8,top)+'px';}
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');if(el)showTip(el);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))tt.hidden=true;});
+</script>
