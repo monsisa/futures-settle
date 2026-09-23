@@ -95,7 +95,7 @@
   .nm{font-weight:500}
   .mk{font-size:13px;width:22px}
   .mk.star{color:var(--star)} .mk.trap{color:var(--trap)}
-  .prem{font-weight:700} .prem.p{color:var(--pos)} .prem.n{color:var(--neg)} .prem.z{color:var(--flat)}
+  .prem{font-weight:700} .prem.p{color:var(--neg)} .prem.n{color:var(--pos)} .prem.z{color:var(--flat)}
   .rk{color:var(--ink-soft)} .rk.top{color:var(--ink);font-weight:700}
   .dim{color:var(--ink-faint)}
   .empty{padding:34px;text-align:center;color:var(--ink-soft);font-size:14px}
@@ -196,8 +196,8 @@ function renderStatus(){
     <span class="lead">${rest?'本月休息':'可操作'}</span>
     <span class="detail">台積電週期溢價 <span class="num">${M.tsmc_prem==null?'—':p3(M.tsmc_prem)+'%'}</span>
     ${rest?'&lt;':'≥'} ${M.gate_pct}% 門檻</span>`;
-  const sLevel = strength>=1500 ? {bg:'rgba(192,57,43,.12)',col:'var(--pos)',t:'高危'}
-               : strength>=350  ? {bg:'rgba(184,134,11,.12)',col:'#b8860b',t:'警戒'}
+  const sLevel = strength>=1500 ? {bg:'rgba(15,138,76,.16)',col:'var(--neg)',t:'高危'}
+               : strength>=350  ? {bg:'rgba(15,138,76,.09)',col:'var(--neg)',t:'警戒'}
                :                  {bg:'var(--rest-bg)',col:'var(--ink-soft)',t:'偏低'};
   const sg = document.getElementById('strength');
   sg.className='status'; sg.style.marginTop='10px'; sg.style.background=sLevel.bg;
@@ -211,8 +211,8 @@ function renderStatus(){
     <span style="color:var(--ink-faint)">強度大只是彈藥足;結算日還要看大盤——大盤強漲會把賣壓吸收掉</span></span>`;
 
   // 軋空(上漲)強度燈:折價+融券增
-  const qLevel = sqzStrength>=8000 ? {bg:'rgba(15,138,76,.14)',col:'var(--neg)',t:'彈藥很滿'}
-               : sqzStrength>=3500 ? {bg:'rgba(15,138,76,.09)',col:'var(--neg)',t:'偏多有戲'}
+  const qLevel = sqzStrength>=8000 ? {bg:'rgba(192,57,43,.16)',col:'var(--pos)',t:'彈藥很滿'}
+               : sqzStrength>=3500 ? {bg:'rgba(192,57,43,.09)',col:'var(--pos)',t:'偏多有戲'}
                :                     {bg:'var(--rest-bg)',col:'var(--ink-soft)',t:'偏低'};
   const qg = document.getElementById('sqzstrength');
   qg.className='status'; qg.style.marginTop='10px'; qg.style.background=qLevel.bg;
