@@ -95,7 +95,7 @@
 </div>
 
 <script>
-const D = {"updated":"2026-10-18 08:54","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":1790,"sqz":1939,"tsmc":0.584,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":67.6,"signal":"not_rise","next":{"date":"2026-10-21","kind":"月選","weekday":"三"}},"oi":{"spot":47111,"expiry":"2026-10-21","type":"月選","support":46000,"resistance":54000,"maxpain":46500},"inst":{"sum_lab":"偏空","sum_dir":-17293,"date":"2026-10-16"}};
+const D = {"updated":"2026-10-18 09:15","board":{"url":"https://claude.ai/artifact/29mcUiXKfwaV69KKLeJwpA","near_month":"202610","sell":1790,"sqz":1939,"tsmc":0.584,"gate":"active"},"pcr":{"url":"https://claude.ai/artifact/5KVSRLoK1Jwem5JNnimtZA","latest_pcr":67.6,"signal":"not_rise","next":{"date":"2026-10-21","kind":"月選","weekday":"三"}},"oi":{"spot":47111,"expiry":"2026-10-21","type":"月選","support":46000,"resistance":54000,"maxpain":46500},"inst":{"level":"偏空","pct":27,"z":-0.61,"date":"2026-10-16"}};
 
 function chips(list){ return list.map(c=>`<span class="chip ${c.cls||''}">${c.k}<b class="num">${c.v}</b>${c.u||''}</span>`).join(''); }
 
@@ -105,7 +105,7 @@ const sellCls = b.sell>=350?'up':'rest';
 const sqzCls  = b.sqz>=3500?'down':'rest';
 const pcrUp = p.signal==='not_fall';   // 偏不跌=利多=紅、偏不漲=利空=綠
 const i=D.inst||{};
-const instCls = i.sum_lab==='偏多'?'down':(i.sum_lab==='偏空'?'up':'rest');  // 偏多=紅(down)、偏空=綠(up)
+const instCls = (i.level||'').includes('多')?'down':((i.level||'').includes('空')?'up':'rest');  // 偏多=紅(down)、偏空=綠(up)
 
 document.getElementById('cards').innerHTML = `
   <a class="tool t1" href="board.html">
@@ -166,8 +166,8 @@ document.getElementById('cards').innerHTML = `
     </div>
     <div class="snap">
       ${chips([
-        {k:'外資+投信',v:(i.sum_lab||'—'),cls:instCls},
-        {k:'方向淨',v:(i.sum_dir!=null?i.sum_dir.toLocaleString():'—'),cls:instCls},
+        {k:'外資+投信',v:(i.level||'—'),cls:instCls},
+        {k:'近120日',v:(i.pct!=null?'第'+i.pct+'百分位':'—'),cls:instCls},
         {k:'資料日',v:(i.date||'—')},
       ])}
     </div>

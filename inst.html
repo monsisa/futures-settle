@@ -54,6 +54,14 @@
   .hero.up .big{color:var(--up)} .hero.down .big{color:var(--down)}
   .hero .r{margin-left:auto;text-align:right;font-size:12.5px;color:var(--ink-soft)}
   .hero .note{padding:10px 18px;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line-soft);background:var(--surface)}
+  .hero.up2 .top,.hero.up .top{background:var(--up-bg)} .hero.up2 .big,.hero.up .big{color:var(--up)}
+  .hero.down2 .top,.hero.down .top{background:var(--down-bg)} .hero.down2 .big,.hero.down .big{color:var(--down)}
+  .meter{display:flex;gap:4px;padding:10px 14px;background:var(--surface);border-top:1px solid var(--line-soft)}
+  .mseg{flex:1;text-align:center;font-size:11px;font-weight:700;padding:5px 2px;border-radius:6px;color:var(--ink-faint);background:var(--stripe)}
+  .mseg.on.down2,.mseg.on.down{background:var(--down-bg);color:var(--down)}
+  .mseg.on.up2,.mseg.on.up{background:var(--up-bg);color:var(--up)}
+  .mseg.on.rest{background:var(--rest-bg);color:var(--ink)}
+  .mseg.on{box-shadow:inset 0 0 0 2px currentColor}
 
   h2.sec{font-size:16px;font-weight:800;margin:26px 0 4px}
   .hint{font-size:12.5px;color:var(--ink-faint);margin:0 0 12px}
@@ -129,22 +137,25 @@
 <div id="tt" class="ttpop" hidden></div>
 
 <script>
-const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 09:04","sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"ba":559833,"sa":573845,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"ba":838170,"sa":709347,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"ba":0,"sa":671012,"amt":-671012},"put":{"b":305,"s":0,"net":305,"ba":849,"sa":0,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"ba":1048042,"sa":624657,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"ba":522567,"sa":349396,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}],"trend":{"dates":["10/12","10/13","10/14","10/15","10/16"],"foreign":[-1526,-2113,-2006,-5989,-6617],"trust":[-8134,-8364,-4274,-9336,-10676],"sum":[-9660,-10477,-6280,-15325,-17293]}};
+const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 09:14","level":"偏空","z":-0.61,"pct":27,"bw":-8436,"win_n":120,"sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"ba":559833,"sa":573845,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"ba":838170,"sa":709347,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"ba":0,"sa":671012,"amt":-671012},"put":{"b":305,"s":0,"net":305,"ba":849,"sa":0,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"ba":1048042,"sa":624657,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"ba":522567,"sa":349396,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}],"trend":{"dates":["10/12","10/13","10/14","10/15","10/16"],"foreign":[-1526,-2113,-2006,-5989,-6617],"trust":[-8134,-8364,-4274,-9336,-10676],"sum":[-9660,-10477,-6280,-15325,-17293],"bw":[-2919,-3084,-714,-6332,-8436]}};
 const M = DATA.meta, INSTS = DATA.insts;
 const comma = n => Number(n).toLocaleString('en-US');
 const sgn = x => (x>0?'+':(x<0?'−':''))+comma(Math.abs(x));
 
 document.getElementById('du').textContent = `資料日 ${M.data_date}　(對比前一交易日 ${M.prev_date||'—'})`;
 
-// 合計方向(外資+投信)
-const scls = M.sum_lab==='偏多'?'up':(M.sum_lab==='偏空'?'down':'rest');
-document.getElementById('hero').className = 'hero '+scls;
+// 合計方向 5 級量表(外資+投信,買方加權,近N日自我校準)
+const LV=['強力偏空','偏空','中性','偏多','強力偏多'];
+const LC={'強力偏空':'down2','偏空':'down','中性':'rest','偏多':'up','強力偏多':'up2'};
+const hcls = M.level.includes('多')?'up':(M.level.includes('空')?'down':'rest');
+document.getElementById('hero').className = 'hero '+hcls;
 document.getElementById('hero').innerHTML = `
   <div class="top">
-    <div><div class="lab">外資 + 投信 合計方向</div><div class="big">${M.sum_lab}</div></div>
-    <div class="r">方向淨口數<br><b class="num">${sgn(M.sum_dir)}</b></div>
+    <div><div class="lab">三大法人(外資+投信)方向</div><div class="big">${M.level}</div></div>
+    <div class="r">買方加權分 <b class="num">${sgn(M.bw)}</b><br>近${M.win_n}日 z=${M.z} · 第${M.pct}百分位</div>
   </div>
-  <div class="note">排除自營商(造市避險、方向性低),以外資+投信的「買Call+賣Put − 賣Call−買Put」合計估整體法人傾向。</div>`;
+  <div class="meter">${LV.map(lv=>`<span class="mseg ${LC[lv]} ${lv===M.level?'on':''}">${lv}</span>`).join('')}</div>
+  <div class="note">分數 = (買Call−買Put) + 0.5×(賣Put−賣Call),外資+投信加總;等級 = 相對<b>近${M.win_n}交易日</b>的 z 分數(自我校準)。看不到價內外,為<b>相對情緒傾向</b>、非精準力道;自營商(造市避險)已排除。</div>`;
 
 // 近5日方向趨勢
 const T=DATA.trend||{dates:[],foreign:[],trust:[],sum:[]};
