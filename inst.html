@@ -78,6 +78,19 @@
   .netpos{color:var(--up);font-weight:800} .netneg{color:var(--down);font-weight:800}
   .bull{color:var(--up)} .bear{color:var(--down)}
 
+  /* 口數/金額 切換 */
+  .seg{display:inline-flex;background:var(--head);border:1px solid var(--line);border-radius:9px;padding:3px;margin:2px 0 12px}
+  .seg button{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:7px}
+  .seg button.on{background:var(--surface);color:var(--ink)}
+  /* 近5日趨勢 */
+  .trend{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;overflow-x:auto}
+  .trend table{min-width:360px}
+  .trend th,.trend td{text-align:center;padding:7px 6px;font-size:12.5px}
+  .trend td.l,.trend th.l{text-align:left;font-weight:700;white-space:nowrap}
+  .trend thead th{font-size:11px;color:var(--ink-faint);border-bottom:1px solid var(--line)}
+  .trend .cell{font-family:"JetBrains Mono",monospace;font-weight:700;border-radius:6px;padding:4px 6px;display:inline-block;min-width:50px}
+  .trend .pos{background:var(--up-bg);color:var(--up)} .trend .neg{background:var(--down-bg);color:var(--down)} .trend .zero{color:var(--ink-faint)}
+
   .foot{margin-top:24px;font-size:12px;color:var(--ink-soft);line-height:1.75}
   .foot b{color:var(--ink)} .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
 </style>
@@ -102,8 +115,13 @@
   <div class="du" id="du"></div>
   <div class="hero" id="hero"></div>
 
-  <h2 class="sec">各法人未平倉(口數)</h2>
+  <h2 class="sec">近5日方向趨勢</h2>
+  <p class="hint">方向淨口數(<span class="bull">偏多正</span> / <span class="bear">偏空負</span>)。看外資、投信是持續偏多還是偏空堆疊。</p>
+  <div class="trend" id="trend"></div>
+
+  <h2 class="sec">各法人未平倉</h2>
   <p class="hint">淨額 = 買方 − 賣方。<span class="bull">偏多</span> = 買買權 + 賣賣權;<span class="bear">偏空</span> = 賣買權 + 買賣權。</p>
+  <div class="seg" id="seg"><button data-m="口" class="on">口數</button><button data-m="金">金額(萬元)</button></div>
   <div class="cards" id="cards"></div>
 
   <div class="foot" id="foot"></div>
@@ -111,7 +129,7 @@
 <div id="tt" class="ttpop" hidden></div>
 
 <script>
-const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 08:46","sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"amt":-671012},"put":{"b":305,"s":0,"net":305,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}]};
+const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 08:54","sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"ba":559833,"sa":573845,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"ba":838170,"sa":709347,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"ba":0,"sa":671012,"amt":-671012},"put":{"b":305,"s":0,"net":305,"ba":849,"sa":0,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"ba":1048042,"sa":624657,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"ba":522567,"sa":349396,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}],"trend":{"dates":["10/12","10/13","10/14","10/15","10/16"],"foreign":[-1526,-2113,-2006,-5989,-6617],"trust":[-8134,-8364,-4274,-9336,-10676],"sum":[-9660,-10477,-6280,-15325,-17293]}};
 const M = DATA.meta, INSTS = DATA.insts;
 const comma = n => Number(n).toLocaleString('en-US');
 const sgn = x => (x>0?'+':(x<0?'−':''))+comma(Math.abs(x));
@@ -128,27 +146,58 @@ document.getElementById('hero').innerHTML = `
   </div>
   <div class="note">排除自營商(造市避險、方向性低),以外資+投信的「買Call+賣Put − 賣Call−買Put」合計估整體法人傾向。</div>`;
 
-// 各法人卡
-document.getElementById('cards').innerHTML = INSTS.map(x=>{
-  const cls = x.dir==='偏多'?'up':(x.dir==='偏空'?'down':'rest');
+// 近5日方向趨勢
+const T=DATA.trend||{dates:[],foreign:[],trust:[],sum:[]};
+const kfmt=v=>(v>0?'+':(v<0?'−':''))+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'k':Math.abs(v));
+function trendRow(lab,arr){
+  return `<tr><td class="l">${lab}</td>`+(arr||[]).map(v=>{
+    const cl=v>500?'pos':(v<-500?'neg':'zero');
+    return `<td><span class="cell ${cl}">${kfmt(v)}</span></td>`;
+  }).join('')+`</tr>`;
+}
+document.getElementById('trend').innerHTML = `<table>
+  <thead><tr><th class="l">方向淨(口)</th>${(T.dates||[]).map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+  <tbody>
+    ${trendRow('外資',T.foreign)}
+    ${trendRow('投信',T.trust)}
+    ${trendRow('合計(外+投)',T.sum)}
+  </tbody></table>`;
+
+// 各法人卡(口數 / 金額 切換)
+let mode='口';
+const wan=x=>Math.round(x/10);   // 千元 -> 萬元
+function renderCards(){
   const netcls = v => v>0?'netpos':(v<0?'netneg':'');
-  const chg = x.dir_chg==null ? '' : `　較前日 <b class="num ${x.dir_chg>0?'bull':(x.dir_chg<0?'bear':'')}">${sgn(x.dir_chg)}</b>`;
-  return `<div class="inst">
-    <div class="ih">
-      <span class="nm">${x.name}</span>
-      <span class="pill ${cls}">${x.dir}</span>
-      <span class="dnet">方向淨 <b class="num ${x.dir_net>0?'bull':(x.dir_net<0?'bear':'')}">${sgn(x.dir_net)}</b> 口${chg}</span>
-    </div>
-    ${x.note?`<div class="note">※ ${x.note}</div>`:''}
-    <table>
-      <thead><tr><th class="l">　</th><th>買方未平倉</th><th>賣方未平倉</th><th>淨額</th><th>淨金額(千)</th></tr></thead>
-      <tbody>
-        <tr><td class="l cc">買權 Call</td><td class="num">${comma(x.call.b)}</td><td class="num">${comma(x.call.s)}</td><td class="num ${netcls(x.call.net)}">${sgn(x.call.net)}</td><td class="num">${sgn(x.call.amt)}</td></tr>
-        <tr><td class="l pp">賣權 Put</td><td class="num">${comma(x.put.b)}</td><td class="num">${comma(x.put.s)}</td><td class="num ${netcls(x.put.net)}">${sgn(x.put.net)}</td><td class="num">${sgn(x.put.amt)}</td></tr>
-      </tbody>
-    </table>
-  </div>`;
-}).join('');
+  const hb = mode==='口' ? ['買方未平倉(口)','賣方未平倉(口)','淨額(口)'] : ['買方(萬元)','賣方(萬元)','淨額(萬元)'];
+  const row = (labcls,lab,o)=>{
+    let b,ss,net;
+    if(mode==='口'){ b=o.b; ss=o.s; net=o.net; } else { b=wan(o.ba); ss=wan(o.sa); net=wan(o.amt); }
+    return `<tr><td class="l ${labcls}">${lab}</td><td class="num">${comma(b)}</td><td class="num">${comma(ss)}</td><td class="num ${netcls(net)}">${sgn(net)}</td></tr>`;
+  };
+  document.getElementById('cards').innerHTML = INSTS.map(x=>{
+    const cls = x.dir==='偏多'?'up':(x.dir==='偏空'?'down':'rest');
+    const chg = x.dir_chg==null ? '' : `　較前日 <b class="num ${x.dir_chg>0?'bull':(x.dir_chg<0?'bear':'')}">${sgn(x.dir_chg)}</b>`;
+    return `<div class="inst">
+      <div class="ih">
+        <span class="nm">${x.name}</span>
+        <span class="pill ${cls}">${x.dir}</span>
+        <span class="dnet">方向淨 <b class="num ${x.dir_net>0?'bull':(x.dir_net<0?'bear':'')}">${sgn(x.dir_net)}</b> 口${chg}</span>
+      </div>
+      ${x.note?`<div class="note">※ ${x.note}</div>`:''}
+      <table>
+        <thead><tr><th class="l">　</th><th>${hb[0]}</th><th>${hb[1]}</th><th>${hb[2]}</th></tr></thead>
+        <tbody>${row('cc','買權 Call',x.call)}${row('pp','賣權 Put',x.put)}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+renderCards();
+document.getElementById('seg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  mode=b.dataset.m;
+  document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b));
+  renderCards();
+});
 
 document.getElementById('foot').innerHTML =
   `<b>資料</b> = TAIFEX「三大法人－選擇權買賣權分計」臺指選擇權(TXO)之<b>未平倉餘額</b>,資料日 ${M.data_date}。<br>`+
