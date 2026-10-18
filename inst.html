@@ -98,6 +98,12 @@
   .trend thead th{font-size:11px;color:var(--ink-faint);border-bottom:1px solid var(--line)}
   .trend .cell{font-family:"JetBrains Mono",monospace;font-weight:700;border-radius:6px;padding:4px 6px;display:inline-block;min-width:50px}
   .trend .pos{background:var(--up-bg);color:var(--up)} .trend .neg{background:var(--down-bg);color:var(--down)} .trend .zero{color:var(--ink-faint)}
+  .trendwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .trendchart{flex:1 1 300px;min-width:260px}
+  .trendtable{flex:1 1 320px;min-width:280px;overflow-x:auto}
+  .tlegend{display:flex;gap:14px;font-size:11.5px;color:var(--ink-soft);margin-top:4px;flex-wrap:wrap}
+  .tlegend span{display:flex;align-items:center;gap:5px}
+  .tlegend i{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:2px;display:inline-block}
 
   .foot{margin-top:24px;font-size:12px;color:var(--ink-soft);line-height:1.75}
   .foot b{color:var(--ink)} .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
@@ -137,7 +143,7 @@
 <div id="tt" class="ttpop" hidden></div>
 
 <script>
-const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 09:14","level":"偏空","z":-0.61,"pct":27,"bw":-8436,"win_n":120,"sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"ba":559833,"sa":573845,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"ba":838170,"sa":709347,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"ba":0,"sa":671012,"amt":-671012},"put":{"b":305,"s":0,"net":305,"ba":849,"sa":0,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"ba":1048042,"sa":624657,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"ba":522567,"sa":349396,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}],"trend":{"dates":["10/12","10/13","10/14","10/15","10/16"],"foreign":[-1526,-2113,-2006,-5989,-6617],"trust":[-8134,-8364,-4274,-9336,-10676],"sum":[-9660,-10477,-6280,-15325,-17293],"bw":[-2919,-3084,-714,-6332,-8436]}};
+const DATA = {"meta":{"data_date":"2026-10-16","prev_date":"2026-10-15","updated":"2026-10-18 09:26","level":"偏空","z":-0.61,"pct":27,"bw":-8436,"win_n":120,"sum_dir":-17293,"sum_lab":"偏空"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":15849,"s":15146,"net":703,"ba":559833,"sa":573845,"amt":-14012},"put":{"b":15123,"s":7803,"net":7320,"ba":838170,"sa":709347,"amt":128823},"dir_net":-6617,"dir":"偏空","dir_chg":-628},{"key":"trust","name":"投信","note":"","call":{"b":0,"s":10371,"net":-10371,"ba":0,"sa":671012,"amt":-671012},"put":{"b":305,"s":0,"net":305,"ba":849,"sa":0,"amt":849},"dir_net":-10676,"dir":"偏空","dir_chg":-1340},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":37711,"s":21262,"net":16449,"ba":1048042,"sa":624657,"amt":423385},"put":{"b":17877,"s":20726,"net":-2849,"ba":522567,"sa":349396,"amt":173171},"dir_net":19298,"dir":"偏多","dir_chg":8094}],"trend":{"dates":["10/12","10/13","10/14","10/15","10/16"],"foreign":[-1526,-2113,-2006,-5989,-6617],"trust":[-8134,-8364,-4274,-9336,-10676],"sum":[-9660,-10477,-6280,-15325,-17293],"bw":[-2919,-3084,-714,-6332,-8436]}};
 const M = DATA.meta, INSTS = DATA.insts;
 const comma = n => Number(n).toLocaleString('en-US');
 const sgn = x => (x>0?'+':(x<0?'−':''))+comma(Math.abs(x));
@@ -166,13 +172,39 @@ function trendRow(lab,arr){
     return `<td><span class="cell ${cl}">${kfmt(v)}</span></td>`;
   }).join('')+`</tr>`;
 }
-document.getElementById('trend').innerHTML = `<table>
-  <thead><tr><th class="l">方向淨(口)</th>${(T.dates||[]).map(d=>`<th>${d}</th>`).join('')}</tr></thead>
-  <tbody>
-    ${trendRow('外資',T.foreign)}
-    ${trendRow('投信',T.trust)}
-    ${trendRow('合計(外+投)',T.sum)}
-  </tbody></table>`;
+function sparkline(T){
+  const W=330,H=150,pl=10,pr=10,pt=14,pb=20;
+  const series=[['合計(外+投)',T.sum||[],'var(--accent)',2.6],['外資',T.foreign||[],'#e0883a',1.7],['投信',T.trust||[],'#9b7cd4',1.7]];
+  const all=[].concat(T.sum||[],T.foreign||[],T.trust||[],[0]);
+  let mn=Math.min(...all), mx=Math.max(...all); if(mn===mx){mn-=1;mx+=1;}
+  const n=(T.dates||[]).length||1;
+  const X=i=> pl+(W-pl-pr)*(n>1?i/(n-1):0.5);
+  const Y=v=> pt+(H-pt-pb)*(1-(v-mn)/(mx-mn));
+  const y0=Y(0);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">`;
+  svg+=`<line x1="${pl}" y1="${y0}" x2="${W-pr}" y2="${y0}" style="stroke:var(--line);stroke-width:1;stroke-dasharray:3 3"/>`;
+  svg+=`<text x="${pl}" y="${y0-3}" font-size="8" style="fill:var(--ink-faint)">0</text>`;
+  (T.dates||[]).forEach((d,i)=>{ svg+=`<text x="${X(i)}" y="${H-6}" font-size="9" text-anchor="middle" style="fill:var(--ink-faint)">${d}</text>`; });
+  series.forEach(([name,arr,col,w])=>{
+    const pts=arr.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    svg+=`<polyline points="${pts}" style="fill:none;stroke:${col};stroke-width:${w};stroke-linejoin:round;stroke-linecap:round"/>`;
+    arr.forEach((v,i)=>{ svg+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${w>2?2.8:2}" style="fill:${col}"/>`; });
+  });
+  svg+=`</svg>`;
+  const legend=`<div class="tlegend">`+series.map(([name,,col])=>`<span><i style="border-top-color:${col}"></i>${name}</span>`).join('')+`</div>`;
+  return svg+legend;
+}
+document.getElementById('trend').innerHTML = `<div class="trendwrap">
+  <div class="trendchart">${sparkline(T)}</div>
+  <div class="trendtable"><table>
+    <thead><tr><th class="l">方向淨(口)</th>${(T.dates||[]).map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${trendRow('外資',T.foreign)}
+      ${trendRow('投信',T.trust)}
+      ${trendRow('合計(外+投)',T.sum)}
+    </tbody></table>
+  </div>
+</div>`;
 
 // 各法人卡(口數 / 金額 切換)
 let mode='口';
