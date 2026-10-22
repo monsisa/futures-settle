@@ -143,7 +143,7 @@
   <div class="trend" id="trend"></div>
 
   <h2 class="sec">各法人未平倉</h2>
-  <p class="hint">淨額 = 買方 − 賣方。<span class="bull">偏多</span> = 買買權 + 賣賣權;<span class="bear">偏空</span> = 賣買權 + 買賣權。<br>切換顯示:<b>未平倉增減</b>(今日 OI 變化,口)/ <b>當日交易(買賣超)</b>(今日實際成交金額,萬,=買方/賣方成交額與淨額,就是法人買賣超那組)/ <b>未平倉金額</b>(存量持倉市值,萬)。<br><b>約當點位</b> = 用當日<b>交易金額 ÷ 交易口數</b>換算的平均權利金點數(=今天實際成交均價),反推近月約當履約價(今天實際在動的價位),判<b>價內(內)/價外(外)</b>。</p>
+  <p class="hint">淨額 = 買方 − 賣方。<span class="bull">偏多</span> = 買買權 + 賣賣權;<span class="bear">偏空</span> = 賣買權 + 買賣權。<br>切換顯示:<b>未平倉增減</b>(今日 OI 變化,口)/ <b>當日交易(買賣超)</b>(今日實際成交金額,萬,=買方/賣方成交額與淨額,就是法人買賣超那組)/ <b>未平倉金額</b>(存量持倉市值,萬)。<br><b>約當點位分兩種</b>(切到哪個模式就顯示對應的):<b>約當(當日)</b>=用交易金額÷交易口數(今天成交均價)反推→今天實際在動的價位;<b>約當(持倉)</b>=用未平倉金額÷未平倉口數(整體持倉均價)反推→部位整體落在的價位。皆比約當現價判<b>價內(內)/價外(外)</b>。</p>
   <div class="seg" id="seg"><button data-m="inc" class="on">未平倉增減</button><button data-m="trade">當日交易(買賣超)</button><button data-m="amt">未平倉金額</button></div>
   <div class="cards" id="cards"></div>
 
@@ -152,7 +152,7 @@
 <div id="tt" class="ttpop" hidden></div>
 
 <script>
-const DATA = {"meta":{"data_date":"2026-10-22","prev_date":"2026-10-21","updated":"2026-10-22 21:16","level":"中性","z":-0.05,"pct":47,"bw":-6768,"win_n":120,"sum_dir":-16026,"sum_lab":"偏空","eq_spot":45985,"eq_exp":"202610F4"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":14300,"s":14125,"net":175,"ba":386639,"sa":467462,"amt":-80823,"db":2935,"ds":2817,"dnet":118,"dba":-74805,"dsa":-60436,"damt":-14369,"tb":45172,"tba":460423,"ts":45054,"tsa":489530},"put":{"b":11371,"s":9474,"net":1897,"ba":1100680,"sa":963757,"amt":136923,"db":2699,"ds":2880,"dnet":-181,"dba":253134,"dsa":240735,"damt":12399,"tb":52064,"tba":668014,"ts":52245,"tsa":683112},"dir_net":-1722,"dir":"偏空","dir_chg":299,"eq":{"bc":46500,"sc":46450,"bp":45550,"sp":45550}},{"key":"trust","name":"投信","note":"","call":{"b":5,"s":13864,"net":-13859,"ba":200,"sa":552871,"amt":-552671,"db":0,"ds":1800,"dnet":-1800,"dba":-75,"dsa":-227080,"damt":227005,"tb":0,"tba":0,"ts":1800,"tsa":107781},"put":{"b":445,"s":0,"net":445,"ba":11255,"sa":0,"amt":11255,"db":200,"ds":0,"dnet":200,"dba":8476,"dsa":0,"damt":8476,"tb":200,"tba":2588,"ts":0,"tsa":0},"dir_net":-14304,"dir":"偏空","dir_chg":-2000,"eq":{"bc":null,"sc":44900,"bp":45550,"sp":null}},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":38586,"s":26540,"net":12046,"ba":875740,"sa":423151,"amt":452589,"db":10332,"ds":9510,"dnet":822,"dba":-301037,"dsa":44994,"damt":-346031,"tb":65292,"tba":605048,"ts":64470,"tsa":736689},"put":{"b":21472,"s":22866,"net":-1394,"ba":782259,"sa":591357,"amt":190902,"db":5176,"ds":7109,"dnet":-1933,"dba":308331,"dsa":277020,"damt":31311,"tb":52508,"tba":664539,"ts":54441,"tsa":669788},"dir_net":13440,"dir":"偏多","dir_chg":2755,"eq":{"bc":46550,"sc":46450,"bp":45550,"sp":45500}}],"trend":{"dates":["10/16","10/19","10/20","10/21","10/22"],"foreign":[-6617,-6001,-7701,-2021,-1722],"trust":[-10676,-13736,-15433,-12304,-14304],"dealer":[19298,22744,29773,10685,13440],"sum":[-17293,-19737,-23134,-14325,-16026],"bw":[-8436,-9469,-12268,-5936,-6768]}};
+const DATA = {"meta":{"data_date":"2026-10-22","prev_date":"2026-10-21","updated":"2026-10-22 21:21","level":"中性","z":-0.05,"pct":47,"bw":-6768,"win_n":120,"sum_dir":-16026,"sum_lab":"偏空","eq_spot":45985,"eq_exp":"202610F4"},"insts":[{"key":"foreign","name":"外資","note":"","call":{"b":14300,"s":14125,"net":175,"ba":386639,"sa":467462,"amt":-80823,"db":2935,"ds":2817,"dnet":118,"dba":-74805,"dsa":-60436,"damt":-14369,"tb":45172,"tba":460423,"ts":45054,"tsa":489530},"put":{"b":11371,"s":9474,"net":1897,"ba":1100680,"sa":963757,"amt":136923,"db":2699,"ds":2880,"dnet":-181,"dba":253134,"dsa":240735,"damt":12399,"tb":52064,"tba":668014,"ts":52245,"tsa":683112},"dir_net":-1722,"dir":"偏空","dir_chg":299,"eq_trade":{"bc":46500,"sc":46450,"bp":45550,"sp":45550},"eq_stock":{"bc":45800,"sc":45600,"bp":47950,"sp":48000}},{"key":"trust","name":"投信","note":"","call":{"b":5,"s":13864,"net":-13859,"ba":200,"sa":552871,"amt":-552671,"db":0,"ds":1800,"dnet":-1800,"dba":-75,"dsa":-227080,"damt":227005,"tb":0,"tba":0,"ts":1800,"tsa":107781},"put":{"b":445,"s":0,"net":445,"ba":11255,"sa":0,"amt":11255,"db":200,"ds":0,"dnet":200,"dba":8476,"dsa":0,"damt":8476,"tb":200,"tba":2588,"ts":0,"tsa":0},"dir_net":-14304,"dir":"偏空","dir_chg":-2000,"eq_trade":{"bc":null,"sc":44900,"bp":45550,"sp":null},"eq_stock":{"bc":45400,"sc":45400,"bp":46150,"sp":null}},{"key":"dealer","name":"自營商","note":"多為選擇權造市商避險部位,方向訊號參考性低","call":{"b":38586,"s":26540,"net":12046,"ba":875740,"sa":423151,"amt":452589,"db":10332,"ds":9510,"dnet":822,"dba":-301037,"dsa":44994,"damt":-346031,"tb":65292,"tba":605048,"ts":64470,"tsa":736689},"put":{"b":21472,"s":22866,"net":-1394,"ba":782259,"sa":591357,"amt":190902,"db":5176,"ds":7109,"dnet":-1933,"dba":308331,"dsa":277020,"damt":31311,"tb":52508,"tba":664539,"ts":54441,"tsa":669788},"dir_net":13440,"dir":"偏多","dir_chg":2755,"eq_trade":{"bc":46550,"sc":46450,"bp":45550,"sp":45500},"eq_stock":{"bc":45950,"sc":46200,"bp":46550,"sp":46200}}],"trend":{"dates":["10/16","10/19","10/20","10/21","10/22"],"foreign":[-6617,-6001,-7701,-2021,-1722],"trust":[-10676,-13736,-15433,-12304,-14304],"dealer":[19298,22744,29773,10685,13440],"sum":[-17293,-19737,-23134,-14325,-16026],"bw":[-8436,-9469,-12268,-5936,-6768]}};
 const M = DATA.meta, INSTS = DATA.insts;
 const comma = n => Number(n).toLocaleString('en-US');
 const sgn = x => (x>0?'+':(x<0?'−':''))+comma(Math.abs(x));
@@ -229,9 +229,9 @@ const EQ = M.eq_spot;
 const eqS2 = (k,isCall)=>{ if(k==null||!EQ) return '<span class="dim">—</span>'; const itm=isCall?k<EQ:k>EQ;
   return `~${comma(k)}<small class="${itm?'itm':'otm'}">${itm?'內':'外'}</small>`; };
 const MODES = {
-  inc:  {hdr:['買方增減(口)','賣方增減(口)','淨增減(口)'],  pick:o=>[o.db,o.ds,o.dnet],                      signed:true },
-  trade:{hdr:['買方(萬)','賣方(萬)','淨(萬)'],         pick:o=>[wan(o.tba),wan(o.tsa),wan(o.tba-o.tsa)], signed:false},
-  amt:  {hdr:['買方(萬)','賣方(萬)','淨額(萬)'],        pick:o=>[wan(o.ba),wan(o.sa),wan(o.amt)],         signed:false},
+  inc:  {hdr:['買方增減(口)','賣方增減(口)','淨增減(口)'],  pick:o=>[o.db,o.ds,o.dnet],                      signed:true,  eqkey:'eq_trade', eqhdr:'約當點位(當日)'},
+  trade:{hdr:['買方(萬)','賣方(萬)','淨(萬)'],         pick:o=>[wan(o.tba),wan(o.tsa),wan(o.tba-o.tsa)], signed:false, eqkey:'eq_trade', eqhdr:'約當點位(當日)'},
+  amt:  {hdr:['買方(萬)','賣方(萬)','淨額(萬)'],        pick:o=>[wan(o.ba),wan(o.sa),wan(o.amt)],         signed:false, eqkey:'eq_stock', eqhdr:'約當點位(持倉)'},
 };
 function renderCards(){
   const MM=MODES[mode];
@@ -247,6 +247,7 @@ function renderCards(){
   document.getElementById('cards').innerHTML = INSTS.map(x=>{
     const cls = x.dir==='偏多'?'up':(x.dir==='偏空'?'down':'rest');
     const chg = x.dir_chg==null ? '' : `　較前日 <b class="num ${x.dir_chg>0?'bull':(x.dir_chg<0?'bear':'')}">${sgn(x.dir_chg)}</b>`;
+    const eq = x[MM.eqkey]||{};
     return `<div class="inst">
       <div class="ih">
         <span class="nm">${x.name}</span>
@@ -255,8 +256,8 @@ function renderCards(){
       </div>
       ${x.note?`<div class="note">※ ${x.note}</div>`:''}
       <div style="overflow-x:auto"><table>
-        <thead><tr><th class="l">　</th><th>${MM.hdr[0]}</th><th>${MM.hdr[1]}</th><th>${MM.hdr[2]}</th><th>約當點位(當日)</th></tr></thead>
-        <tbody>${row('cc','買權 Call',x.call,x.eq&&x.eq.bc,x.eq&&x.eq.sc,true)}${row('pp','賣權 Put',x.put,x.eq&&x.eq.bp,x.eq&&x.eq.sp,false)}</tbody>
+        <thead><tr><th class="l">　</th><th>${MM.hdr[0]}</th><th>${MM.hdr[1]}</th><th>${MM.hdr[2]}</th><th>${MM.eqhdr}</th></tr></thead>
+        <tbody>${row('cc','買權 Call',x.call,eq.bc,eq.sc,true)}${row('pp','賣權 Put',x.put,eq.bp,eq.sp,false)}</tbody>
       </table></div>
     </div>`;
   }).join('');
